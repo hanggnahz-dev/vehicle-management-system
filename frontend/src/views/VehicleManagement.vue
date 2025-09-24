@@ -707,18 +707,18 @@ onUnmounted(() => {
 /* 响应式设计 */
 @media (max-width: 768px) {
   .vehicle-management {
-    max-width: 100%;
+    max-flex: 1;
     margin: 0;
   }
   
   .card-header {
-    flex-direction: column;
+    flex-direction: row;
     align-items: flex-start;
     gap: 15px;
   }
   
   .header-buttons {
-    width: 100%;
+    flex: 1;
     display: flex;
     gap: 10px;
   }
@@ -733,7 +733,7 @@ onUnmounted(() => {
   
   .search-form .el-form-item {
     margin-bottom: 15px;
-    width: 100%;
+    flex: 1;
   }
   
   .search-form .el-form-item__label {
@@ -747,11 +747,11 @@ onUnmounted(() => {
   }
   
   .search-buttons-item {
-    width: 100%;
+    flex: 1;
   }
   
   .search-buttons {
-    width: 100%;
+    flex: 1;
     display: flex;
     gap: 10px;
   }
@@ -784,12 +784,12 @@ onUnmounted(() => {
   }
   
   .header-buttons {
-    flex-direction: column;
+    flex-direction: row;
     gap: 8px;
   }
   
   .header-buttons .el-button {
-    width: 100%;
+    flex: 1;
   }
   
   .search-form {
