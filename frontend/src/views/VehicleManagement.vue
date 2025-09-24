@@ -317,18 +317,23 @@ const loadVehicles = async () => {
     loading.value = true
     const filter: VehicleFilter = {
       company_name: searchForm.company_name,
-      status: searchForm.status,
       license_plate: searchForm.license_plate,
     }
-    console.log('前端发送的筛选条件:', filter)
     await vehicleStore.fetchVehicles(filter, currentPage.value, pageSize.value)
-    console.log('后端返回的车辆数据:', vehicleStore.vehicles)
-    // 状态筛选现在由后端处理，前端只需要处理排序
-    let sortedVehicles = [...vehicleStore.vehicles]
-    if (sortField.value && sortOrder.value) {
-      sortedVehicles = sortVehicles(sortedVehicles, sortField.value, sortOrder.value)
-      vehicleStore.vehicles = sortedVehicles
+    // 如果有状态过滤条件，在前端进行过滤
+    let filteredVehicles = vehicleStore.vehicles
+    if (searchForm.status) {
+      filteredVehicles = vehicleStore.vehicles.filter(vehicle => {
+        const status = getVehicleStatus(vehicle.inspection_date)
+        return status.text === getStatusText(searchForm.status!)
+      })
     }
+    // 应用排序
+    if (sortField.value && sortOrder.value) {
+      filteredVehicles = sortVehicles(filteredVehicles, sortField.value, sortOrder.value)
+    }
+    // 更新车辆列表为过滤和排序后的结果
+    vehicleStore.vehicles = filteredVehicles
   } catch (error) {
     ElMessage.error('加载车辆列表失败')
   } finally {
@@ -371,9 +376,11 @@ const handleCompanyClear = async () => {
 }
 const handleCompanyInput = (value: string) => {
   console.log('公司输入:', value)
-  // 当用户手动输入时，进行实时搜索（但不包括从下拉选择的情况）
-  // 注意：这里不调用loadVehicles()，因为选择时会通过@select事件处理
-  // 只有用户手动输入时才需要实时搜索
+  // 当用户输入时，可以实时搜索
+  if (value) {
+    currentPage.value = 1
+    loadVehicles()
+  }
 }
 const handleCompanyFocus = () => {
   console.log('公司名称获得焦点，显示所有公司列表')
@@ -394,9 +401,6 @@ const handleLicensePlateInput = (value: string) => {
 }
 const handleCompanyChange = async (companyName: string) => {
   console.log('公司选择改变:', companyName)
-  // 更新搜索表单中的公司名称
-  searchForm.company_name = companyName
-  console.log('更新后的搜索表单:', searchForm)
   // 当选择公司时，重新加载车辆列表
   currentPage.value = 1
   loadVehicles()
@@ -407,6 +411,9 @@ const handleSearch = () => {
 }
 const handleStatusChange = (status: string) => {
   console.log('车辆状态改变:', status)
+  // 更新搜索表单中的状态
+  searchForm.status = status
+  console.log('更新后的搜索表单:', searchForm)
   // 当状态改变时，重新加载车辆列表
   currentPage.value = 1
   loadVehicles()
