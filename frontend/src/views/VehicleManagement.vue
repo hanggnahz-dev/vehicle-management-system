@@ -18,14 +18,14 @@
       </template>
 
       <!-- 搜索筛选区域 -->
-      <el-form :model="searchForm" inline class="search-form">
+      <el-form :model="searchForm" :inline="!isMobile" class="search-form">
         <el-form-item label="公司名称">
           <el-autocomplete
             v-model="searchForm.company_name"
             :fetch-suggestions="queryCompanySuggestions"
             placeholder="请输入或选择公司名称"
             clearable
-            style="width: 200px"
+            :style="isMobile ? 'width: 100%' : 'width: 200px'"
             @select="handleCompanySelect"
             @clear="handleCompanyClear"
             @input="handleCompanyInput"
@@ -37,7 +37,7 @@
             v-model="searchForm.license_plate"
             placeholder="请输入车牌号进行查询"
             clearable
-            style="width: 200px"
+            :style="isMobile ? 'width: 100%' : 'width: 200px'"
             @input="handleLicensePlateInput"
             @clear="handleLicensePlateClear"
           />
@@ -48,7 +48,7 @@
             v-model="searchForm.status"
             placeholder="请选择状态"
             clearable
-            style="width: 120px"
+            :style="isMobile ? 'width: 100%' : 'width: 120px'"
           >
             <el-option label="正常" value="normal" />
             <el-option label="即将到期" value="expiring" />
@@ -120,7 +120,8 @@
     <el-dialog
       v-model="showAddDialog"
       :title="editingVehicle ? '编辑车辆' : '添加车辆'"
-      width="500px"
+      :width="isMobile ? '95%' : '500px'"
+      :fullscreen="isMobile"
     >
       <el-form :model="vehicleForm" :rules="vehicleRules" ref="vehicleFormRef" label-width="100px">
         <el-form-item label="公司名称" prop="company_name">
@@ -163,7 +164,12 @@
     </el-dialog>
 
     <!-- 导入数据对话框 -->
-    <el-dialog v-model="showImportDialog" title="导入车辆数据" width="600px">
+    <el-dialog 
+      v-model="showImportDialog" 
+      title="导入车辆数据" 
+      :width="isMobile ? '95%' : '600px'"
+      :fullscreen="isMobile"
+    >
       <div class="import-container">
         <el-upload
           ref="uploadRef"
@@ -203,7 +209,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, computed } from 'vue'
+import { ref, reactive, onMounted, computed, onUnmounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Upload, Search, Refresh, UploadFilled } from '@element-plus/icons-vue'
 import { useVehicleStore } from '@/stores/vehicle'
@@ -211,6 +217,14 @@ import type { Vehicle, CreateVehicleData, VehicleFilter } from '@/stores/vehicle
 import { parseFile } from '@/utils/fileParser'
 
 const vehicleStore = useVehicleStore()
+
+// 响应式检测
+const isMobile = ref(false)
+
+// 检测屏幕尺寸
+const checkScreenSize = () => {
+  isMobile.value = window.innerWidth <= 768
+}
 
 // 日期快捷选择配置
 const dateShortcuts = [
@@ -711,6 +725,14 @@ const getStatusText = (statusValue: string) => {
 onMounted(() => {
   // 初始化时只加载公司列表和车牌号列表，不加载车辆列表
   loadMetaData()
+  
+  // 初始化响应式检测
+  checkScreenSize()
+  window.addEventListener('resize', checkScreenSize)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', checkScreenSize)
 })
 </script>
 
@@ -768,5 +790,70 @@ onMounted(() => {
 .import-tips li {
   margin-bottom: 5px;
   color: #606266;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .vehicle-management {
+    max-width: 100%;
+    margin: 0;
+  }
+  
+  .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  
+  .card-header > div {
+    width: 100%;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  
+  .search-form {
+    padding: 15px;
+  }
+  
+  .search-form .el-form-item {
+    margin-bottom: 15px;
+  }
+  
+  .search-buttons {
+    width: 100%;
+    display: flex;
+    gap: 10px;
+  }
+  
+  .search-buttons .el-button {
+    flex: 1;
+  }
+  
+  .pagination-container {
+    text-align: center;
+  }
+  
+  .pagination-container .el-pagination {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .card-header > div {
+    flex-direction: column;
+  }
+  
+  .card-header .el-button {
+    width: 100%;
+  }
+  
+  .search-form {
+    padding: 10px;
+  }
+  
+  .import-tips {
+    padding: 10px;
+  }
 }
 </style>

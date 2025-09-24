@@ -8,10 +8,10 @@
       </template>
       <div class="welcome-content">
         <el-row :gutter="20">
-          <el-col :span="12">
+          <el-col :xs="24" :sm="12" :md="12" :lg="12" :xl="12">
             <el-statistic title="公司数量" :value="companyCount" />
           </el-col>
-          <el-col :span="12">
+          <el-col :xs="24" :sm="12" :md="12" :lg="12" :xl="12">
             <el-statistic title="车辆总数" :value="vehicleCount" />
           </el-col>
         </el-row>
@@ -180,5 +180,52 @@ onMounted(() => {
 
 .welcome-content {
   text-align: center;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .welcome-card,
+  .data-card {
+    max-width: 100%;
+    margin: 0;
+  }
+  
+  .welcome-content {
+    padding: 10px;
+  }
+  
+  .welcome-content .el-row {
+    margin: 0 -10px;
+  }
+  
+  .welcome-content .el-col {
+    padding: 0 10px;
+    margin-bottom: 20px;
+  }
+  
+  .data-card {
+    margin-top: 10px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .welcome-content {
+    padding: 5px;
+  }
+  
+  .welcome-content .el-row {
+    margin: 0 -5px;
+  }
+  
+  .welcome-content .el-col {
+    padding: 0 5px;
+    margin-bottom: 15px;
+  }
+  
+  .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
 }
 </style>

@@ -212,14 +212,60 @@ onMounted(() => {
 /* 演示账号样式已删除 */
 
 /* 响应式设计 */
-@media (max-width: 480px) {
+@media (max-width: 768px) {
+  .login-container {
+    padding: 10px;
+  }
+  
   .login-box {
     padding: 30px 20px;
-    margin: 10px;
+    max-width: 100%;
+  }
+  
+  .login-header h2 {
+    font-size: 20px;
+  }
+  
+  .login-header p {
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 480px) {
+  .login-container {
+    padding: 5px;
+  }
+  
+  .login-box {
+    padding: 20px 15px;
+    border-radius: 8px;
   }
 
   .login-header h2 {
-    font-size: 20px;
+    font-size: 18px;
+  }
+  
+  .login-header p {
+    font-size: 12px;
+  }
+  
+  .login-button {
+    height: 40px;
+    font-size: 14px;
+  }
+}
+
+/* 横屏手机适配 */
+@media (max-width: 768px) and (orientation: landscape) {
+  .login-container {
+    align-items: flex-start;
+    padding-top: 10px;
+  }
+  
+  .login-box {
+    margin-top: 20px;
+    max-height: 90vh;
+    overflow-y: auto;
   }
 }
 </style>
