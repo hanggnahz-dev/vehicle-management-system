@@ -331,12 +331,55 @@ install_docker() {
         return
     fi
     
-    # 安装Docker
-    curl -fsSL https://get.docker.com -o get-docker.sh
-    sh get-docker.sh
-    rm get-docker.sh
+    # 卸载旧版本的Docker（按照阿里云官方文档）
+    log_info "卸载旧版本的Docker..."
     
-    # 启动Docker服务
+    # 删除Docker相关源
+    rm -f /etc/yum.repos.d/docker*.repo
+    
+    # 卸载Docker和相关的软件包
+    $PACKAGE_MANAGER -y remove \
+        docker-ce \
+        containerd.io \
+        docker-ce-rootless-extras \
+        docker-buildx-plugin \
+        docker-ce-cli \
+        docker-compose-plugin 2>/dev/null || true
+    
+    # 清理Docker数据目录（可选，用户确认后执行）
+    if [[ -d /var/lib/docker ]]; then
+        log_warning "发现Docker数据目录 /var/lib/docker"
+        read -p "是否删除Docker数据目录？这将删除所有镜像、容器、存储卷和网络 (y/n，默认n): " REMOVE_DOCKER_DATA
+        if [[ "$REMOVE_DOCKER_DATA" == "y" || "$REMOVE_DOCKER_DATA" == "Y" ]]; then
+            rm -rf /var/lib/docker
+            log_info "Docker数据目录已删除"
+        fi
+    fi
+    
+    # 安装Docker社区版本（按照阿里云官方文档）
+    log_info "安装Docker社区版本..."
+    
+    # 添加Docker软件包源
+    wget -O /etc/yum.repos.d/docker-ce.repo http://mirrors.cloud.aliyuncs.com/docker-ce/linux/centos/docker-ce.repo
+    sed -i 's|https://mirrors.aliyun.com|http://mirrors.cloud.aliyuncs.com|g' /etc/yum.repos.d/docker-ce.repo
+    
+    # Alibaba Cloud Linux3专用的dnf源兼容插件
+    $PACKAGE_MANAGER -y install dnf-plugin-releasever-adapter --repo alinux3-plus
+    
+    # 安装Docker社区版本，容器运行时containerd.io，以及Docker构建和Compose插件
+    if ! $PACKAGE_MANAGER -y install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin; then
+        log_warning "Docker安装失败，尝试故障排除..."
+        troubleshoot_docker_installation
+        
+        # 再次尝试安装
+        log_info "重新尝试安装Docker..."
+        if ! $PACKAGE_MANAGER -y install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin; then
+            log_error "Docker安装仍然失败，请检查网络连接和系统配置"
+            return 1
+        fi
+    fi
+    
+    # 启动Docker并设置开机自启
     systemctl start docker
     systemctl enable docker
     
@@ -360,28 +403,71 @@ EOF
     # 重启Docker服务
     systemctl restart docker
     
-    log_success "Docker安装完成"
+    # 将当前用户添加到docker组
+    usermod -aG docker $USER
+    log_info "已将用户 $USER 添加到docker组"
+    log_info "请执行 'newgrp docker' 或重新登录以使组权限生效"
+    
+    # 验证Docker安装
+    if docker --version &> /dev/null; then
+        log_success "Docker安装完成: $(docker --version)"
+    else
+        log_error "Docker安装失败"
+        return 1
+    fi
+}
+
+# Docker安装故障排除
+troubleshoot_docker_installation() {
+    log_info "Docker安装故障排除..."
+    
+    # 检查常见问题
+    if ! $PACKAGE_MANAGER makecache &> /dev/null; then
+        log_warning "包管理器缓存生成失败，尝试清理缓存..."
+        $PACKAGE_MANAGER clean packages
+        $PACKAGE_MANAGER makecache
+    fi
+    
+    # 检查dnf版本
+    if command -v dnf &> /dev/null; then
+        log_info "更新dnf到最新版本..."
+        $PACKAGE_MANAGER update dnf -y
+    fi
+    
+    # 检查网络连接
+    if ! curl -s http://mirrors.cloud.aliyuncs.com &> /dev/null; then
+        log_warning "无法访问阿里云镜像源，尝试使用备用源..."
+        # 使用备用镜像源
+        sed -i 's|http://mirrors.cloud.aliyuncs.com|https://mirrors.aliyun.com|g' /etc/yum.repos.d/docker-ce.repo
+    fi
 }
 
 # 安装Docker Compose
 install_docker_compose() {
     log_info "安装Docker Compose..."
     
-    # 检查Docker Compose是否已安装
+    # 检查Docker Compose是否已安装（作为插件）
+    if docker compose version &> /dev/null; then
+        COMPOSE_VERSION=$(docker compose version)
+        log_warning "Docker Compose已安装: $COMPOSE_VERSION"
+        return
+    fi
+    
+    # 检查传统的docker-compose命令
     if command -v docker-compose &> /dev/null; then
         COMPOSE_VERSION=$(docker-compose --version)
         log_warning "Docker Compose已安装: $COMPOSE_VERSION"
         return
     fi
     
-    # 安装Docker Compose
-    curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-    chmod +x /usr/local/bin/docker-compose
-    
-    # 创建软链接
-    ln -sf /usr/local/bin/docker-compose /usr/bin/docker-compose
-    
-    log_success "Docker Compose安装完成"
+    # Docker Compose现在作为Docker插件安装，在install_docker函数中已经安装
+    # 这里只需要验证安装是否成功
+    if docker compose version &> /dev/null; then
+        log_success "Docker Compose插件安装完成"
+    else
+        log_error "Docker Compose插件安装失败"
+        return 1
+    fi
 }
 
 # 安装PM2

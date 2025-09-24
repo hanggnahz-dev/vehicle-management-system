@@ -201,8 +201,8 @@ check_nodejs_installation() {
 check_docker_config() {
     log_info "检查 Docker 配置..."
     
-    # 检查Docker安装
-    if grep -q "get.docker.com" deploy-aliyun-alinux3.sh; then
+    # 检查Docker安装（使用阿里云官方方法）
+    if grep -q "docker-ce.repo" deploy-aliyun-alinux3.sh; then
         log_success "包含 Docker 安装"
     else
         log_error "缺少 Docker 安装"
