@@ -586,36 +586,24 @@ After=network.target
 Type=simple
 User=root
 WorkingDirectory=$PROJECT_DIR/backend
-ExecStart=/usr/bin/npm run start:prod
+ExecStart=/usr/bin/node dist/index.js
 Restart=always
 RestartSec=10
 Environment=NODE_ENV=production
 Environment=PORT=5000
 Environment=ALINUX3_OPTIMIZED=true
+Environment=PATH=/usr/local/bin:/usr/bin:/bin
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=vehicle-backend
 
 [Install]
 WantedBy=multi-user.target
 EOF
 
-    # 创建前端服务文件
-    tee /etc/systemd/system/vehicle-frontend.service > /dev/null << EOF
-[Unit]
-Description=Vehicle Management Frontend
-After=network.target
-
-[Service]
-Type=simple
-User=root
-WorkingDirectory=$PROJECT_DIR/frontend
-ExecStart=/usr/bin/npm run preview -- --port 3000 --host 0.0.0.0
-Restart=always
-RestartSec=10
-Environment=NODE_ENV=production
-Environment=ALINUX3_OPTIMIZED=true
-
-[Install]
-WantedBy=multi-user.target
-EOF
+    # 创建前端服务文件（使用nginx服务，不需要单独的systemd服务）
+    # 前端通过nginx提供静态文件服务，不需要单独的Node.js服务
+    log_info "前端将通过nginx提供静态文件服务，无需单独的systemd服务"
 
     # 重新加载systemd
     systemctl daemon-reload
@@ -748,9 +736,9 @@ start_services() {
     systemctl start vehicle-backend
     systemctl enable vehicle-backend
     
-    # 启动前端服务
-    systemctl start vehicle-frontend
-    systemctl enable vehicle-frontend
+    # 启动nginx服务
+    systemctl start nginx
+    systemctl enable nginx
     
     # 等待服务启动
     sleep 5
@@ -760,17 +748,80 @@ start_services() {
         log_success "后端服务启动成功"
     else
         log_error "后端服务启动失败"
-        systemctl status vehicle-backend
+        log_info "查看后端服务日志："
+        journalctl -u vehicle-backend --no-pager -n 20
+        systemctl status vehicle-backend --no-pager
     fi
     
-    if systemctl is-active --quiet vehicle-frontend; then
-        log_success "前端服务启动成功"
+    if systemctl is-active --quiet nginx; then
+        log_success "nginx服务启动成功"
     else
-        log_error "前端服务启动失败"
-        systemctl status vehicle-frontend
+        log_error "nginx服务启动失败"
+        log_info "查看nginx服务日志："
+        journalctl -u nginx --no-pager -n 20
+        systemctl status nginx --no-pager
     fi
     
     log_success "所有服务启动完成"
+}
+
+# 诊断服务问题
+diagnose_services() {
+    log_info "诊断服务问题..."
+    
+    # 检查后端服务
+    log_info "=== 后端服务诊断 ==="
+    if systemctl is-active --quiet vehicle-backend; then
+        log_success "后端服务正在运行"
+    else
+        log_error "后端服务未运行"
+        log_info "服务状态："
+        systemctl status vehicle-backend --no-pager
+        log_info "最近日志："
+        journalctl -u vehicle-backend --no-pager -n 30
+    fi
+    
+    # 检查nginx服务
+    log_info "=== nginx服务诊断 ==="
+    if systemctl is-active --quiet nginx; then
+        log_success "nginx服务正在运行"
+    else
+        log_error "nginx服务未运行"
+        log_info "服务状态："
+        systemctl status nginx --no-pager
+        log_info "最近日志："
+        journalctl -u nginx --no-pager -n 30
+    fi
+    
+    # 检查端口占用
+    log_info "=== 端口占用检查 ==="
+    if netstat -tlnp | grep -q ":5000"; then
+        log_success "端口5000已被占用（后端服务）"
+    else
+        log_warning "端口5000未被占用"
+    fi
+    
+    if netstat -tlnp | grep -q ":80"; then
+        log_success "端口80已被占用（nginx）"
+    else
+        log_warning "端口80未被占用"
+    fi
+    
+    # 检查文件权限
+    log_info "=== 文件权限检查 ==="
+    if [[ -f "$PROJECT_DIR/backend/dist/index.js" ]]; then
+        log_success "后端编译文件存在"
+        ls -la "$PROJECT_DIR/backend/dist/index.js"
+    else
+        log_error "后端编译文件不存在，请检查构建过程"
+    fi
+    
+    if [[ -d "$PROJECT_DIR/frontend/dist" ]]; then
+        log_success "前端构建文件存在"
+        ls -la "$PROJECT_DIR/frontend/dist/"
+    else
+        log_error "前端构建文件不存在，请检查构建过程"
+    fi
 }
 
 # 配置防火墙
@@ -1144,10 +1195,12 @@ show_deployment_info() {
     echo ""
     echo "服务管理命令:"
     echo "查看后端状态: systemctl status vehicle-backend"
-    echo "查看前端状态: systemctl status vehicle-frontend"
+    echo "查看nginx状态: systemctl status nginx"
     echo "重启后端: systemctl restart vehicle-backend"
-    echo "重启前端: systemctl restart vehicle-frontend"
-    echo "查看日志: journalctl -u vehicle-backend -f"
+    echo "重启nginx: systemctl restart nginx"
+    echo "查看后端日志: journalctl -u vehicle-backend -f"
+    echo "查看nginx日志: journalctl -u nginx -f"
+    echo "诊断服务问题: 运行脚本中的diagnose_services函数"
     echo ""
     echo "Alibaba Cloud Linux 3 特有命令:"
     echo "查看防火墙状态: firewall-cmd --list-all"
