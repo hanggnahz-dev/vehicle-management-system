@@ -114,6 +114,7 @@ test-*.html
 debug-*.js
 test-*.csv
 test-*.xlsx
+backend/testdata.csv
 
 # Deployment packages
 *.tar.gz

@@ -26,10 +26,7 @@ export class VehicleController {
       Object.keys(filter).forEach(key => {
         const value = filter[key as keyof VehicleFilter]
         console.log(`处理参数 ${key}:`, value, '类型:', typeof value)
-        if (
-          value === undefined ||
-          value === ''
-        ) {
+        if (value === undefined || value === '') {
           console.log(`删除空参数: ${key}`)
           delete filter[key as keyof VehicleFilter]
         }
