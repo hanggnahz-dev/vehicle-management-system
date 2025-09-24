@@ -16,7 +16,6 @@
           </div>
         </div>
       </template>
-
       <!-- 搜索筛选区域 -->
       <el-form :model="searchForm" :inline="!isMobile" class="search-form">
         <el-form-item label="公司名称">
@@ -31,7 +30,6 @@
             @input="handleCompanyInput"
           />
         </el-form-item>
-
         <el-form-item label="车牌号码">
           <el-input
             v-model="searchForm.license_plate"
@@ -42,7 +40,6 @@
             @clear="handleLicensePlateClear"
           />
         </el-form-item>
-
         <el-form-item label="车辆状态">
           <el-select
             v-model="searchForm.status"
@@ -55,7 +52,6 @@
             <el-option label="已过期" value="expired" />
           </el-select>
         </el-form-item>
-
         <el-form-item class="search-buttons-item">
           <div class="search-buttons">
             <el-button type="primary" @click="handleSearch">
@@ -69,7 +65,6 @@
           </div>
         </el-form-item>
       </el-form>
-
       <!-- 车辆列表 -->
       <el-table
         :data="vehicles"
@@ -80,14 +75,14 @@
       >
         <el-table-column type="selection" width="55" />
         <el-table-column prop="id" label="ID" width="80" sortable="custom" />
-        <el-table-column prop="company_name" label="公司名称" min-width="150" sortable="custom" />
+        <el-table-column prop="company_name" label="公司名称" width="180" sortable="custom" />
         <el-table-column prop="license_plate" label="车牌号码" width="120" sortable="custom" />
         <el-table-column prop="inspection_date" label="审证日期" width="120" sortable="custom">
           <template #default="scope">
             {{ formatDate(scope.row.inspection_date) }}
           </template>
         </el-table-column>
-        <el-table-column label="车辆状态" width="100" sortable="custom" prop="status">
+        <el-table-column label="车辆状态" width="120" sortable="custom" prop="status">
           <template #default="scope">
             <el-tag :type="getVehicleStatus(scope.row.inspection_date).type">
               {{ getVehicleStatus(scope.row.inspection_date).text }}
@@ -103,7 +98,6 @@
           </template>
         </el-table-column>
       </el-table>
-
       <!-- 分页 -->
       <div class="pagination-container">
         <el-pagination
@@ -117,7 +111,6 @@
         />
       </div>
     </el-card>
-
     <!-- 添加/编辑车辆对话框 -->
     <el-dialog
       v-model="showAddDialog"
@@ -164,7 +157,6 @@
         </el-button>
       </template>
     </el-dialog>
-
     <!-- 导入数据对话框 -->
     <el-dialog
       v-model="showImportDialog"
@@ -188,7 +180,6 @@
             <div class="el-upload__tip">支持 .xlsx、.xls、.csv 格式文件</div>
           </template>
         </el-upload>
-
         <div class="import-tips">
           <h4>导入说明：</h4>
           <ul>
@@ -209,7 +200,6 @@
     </el-dialog>
   </div>
 </template>
-
 <script setup lang="ts">
 import { ref, reactive, onMounted, computed, onUnmounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -217,17 +207,13 @@ import { Plus, Upload, Search, Refresh, UploadFilled } from '@element-plus/icons
 import { useVehicleStore } from '@/stores/vehicle'
 import type { Vehicle, CreateVehicleData, VehicleFilter } from '@/stores/vehicle'
 import { parseFile } from '@/utils/fileParser'
-
 const vehicleStore = useVehicleStore()
-
 // 响应式检测
 const isMobile = ref(false)
-
 // 检测屏幕尺寸
 const checkScreenSize = () => {
   isMobile.value = window.innerWidth <= 768
 }
-
 // 日期快捷选择配置
 const dateShortcuts = [
   {
@@ -278,7 +264,6 @@ const dateShortcuts = [
     },
   },
 ]
-
 // 响应式数据
 const loading = ref(false)
 const submitting = ref(false)
@@ -287,34 +272,28 @@ const showAddDialog = ref(false)
 const showImportDialog = ref(false)
 const editingVehicle = ref<Vehicle | null>(null)
 const selectedVehicles = ref<Vehicle[]>([])
-
 // 文件导入相关
 const selectedFile = ref<File | null>(null)
 const uploadRef = ref()
-
 // 分页数据
 const currentPage = ref(1)
 const pageSize = ref(20)
 const total = computed(() => vehicleStore.pagination.total)
-
 // 排序数据
 const sortField = ref<string>('')
 const sortOrder = ref<'ascending' | 'descending' | null>(null)
-
 // 搜索表单
 const searchForm = reactive<VehicleFilter & { status?: string }>({
   company_name: '',
   license_plate: '',
   status: undefined,
 })
-
 // 车辆表单
 const vehicleForm = reactive<CreateVehicleData>({
   company_name: '',
   license_plate: '',
   inspection_date: '',
 })
-
 // 表单验证规则
 const vehicleRules = {
   company_name: [
@@ -327,14 +306,12 @@ const vehicleRules = {
   ],
   inspection_date: [{ required: true, message: '请选择审证日期', trigger: 'change' }],
 }
-
 // 计算属性
 const vehicles = computed(() => vehicleStore.vehicles)
 const companies = computed(() => {
   console.log('计算属性 companies 被调用，当前值:', vehicleStore.companies)
   return vehicleStore.companies
 })
-
 // 方法
 const loadVehicles = async () => {
   try {
@@ -343,9 +320,7 @@ const loadVehicles = async () => {
       company_name: searchForm.company_name,
       license_plate: searchForm.license_plate,
     }
-
     await vehicleStore.fetchVehicles(filter, currentPage.value, pageSize.value)
-
     // 如果有状态过滤条件，在前端进行过滤
     let filteredVehicles = vehicleStore.vehicles
     if (searchForm.status) {
@@ -354,12 +329,10 @@ const loadVehicles = async () => {
         return status.text === getStatusText(searchForm.status!)
       })
     }
-
     // 应用排序
     if (sortField.value && sortOrder.value) {
       filteredVehicles = sortVehicles(filteredVehicles, sortField.value, sortOrder.value)
     }
-
     // 更新车辆列表为过滤和排序后的结果
     vehicleStore.vehicles = filteredVehicles
   } catch (error) {
@@ -368,7 +341,6 @@ const loadVehicles = async () => {
     loading.value = false
   }
 }
-
 const loadMetaData = async () => {
   try {
     // 初始化时只加载公司列表
@@ -381,7 +353,6 @@ const loadMetaData = async () => {
     ElMessage.error('加载元数据失败')
   }
 }
-
 // 公司名称自动完成相关方法
 const queryCompanySuggestions = (queryString: string, callback: (suggestions: any[]) => void) => {
   // 如果没有查询字符串，显示所有公司
@@ -390,24 +361,20 @@ const queryCompanySuggestions = (queryString: string, callback: (suggestions: an
     callback(suggestions)
     return
   }
-
   // 有查询字符串时，进行模糊匹配
   const suggestions = companies.value
     .filter(company => company.toLowerCase().includes(queryString.toLowerCase()))
     .map(company => ({ value: company }))
   callback(suggestions)
 }
-
 const handleCompanySelect = async (item: any) => {
   console.log('公司选择:', item.value)
   await handleCompanyChange(item.value)
 }
-
 const handleCompanyClear = async () => {
   console.log('清空公司选择')
   await handleCompanyChange('')
 }
-
 const handleCompanyInput = (value: string) => {
   console.log('公司输入:', value)
   // 当用户输入时，可以实时搜索
@@ -416,40 +383,33 @@ const handleCompanyInput = (value: string) => {
     loadVehicles()
   }
 }
-
 const handleCompanyFocus = () => {
   console.log('公司名称获得焦点，显示所有公司列表')
   // 当获得焦点时，触发查询以显示所有公司
   // 这里不需要特殊处理，因为queryCompanySuggestions已经支持空字符串显示所有公司
 }
-
 // 车牌号输入相关方法
-
 const handleLicensePlateClear = () => {
   console.log('清空车牌号码选择')
   currentPage.value = 1
   loadVehicles()
 }
-
 const handleLicensePlateInput = (value: string) => {
   console.log('车牌号码输入:', value)
   // 当用户输入时，直接进行搜索
   currentPage.value = 1
   loadVehicles()
 }
-
 const handleCompanyChange = async (companyName: string) => {
   console.log('公司选择改变:', companyName)
   // 当选择公司时，重新加载车辆列表
   currentPage.value = 1
   loadVehicles()
 }
-
 const handleSearch = () => {
   currentPage.value = 1
   loadVehicles()
 }
-
 const handleReset = async () => {
   Object.assign(searchForm, {
     company_name: '',
@@ -463,7 +423,6 @@ const handleReset = async () => {
   // 重新加载车辆列表
   loadVehicles()
 }
-
 const handleEdit = (vehicle: Vehicle) => {
   editingVehicle.value = vehicle
   Object.assign(vehicleForm, {
@@ -473,7 +432,6 @@ const handleEdit = (vehicle: Vehicle) => {
   })
   showAddDialog.value = true
 }
-
 const handleDelete = async (vehicle: Vehicle) => {
   try {
     await ElMessageBox.confirm(`确定要删除车辆 "${vehicle.license_plate}" 吗？`, '确认删除', {
@@ -481,7 +439,6 @@ const handleDelete = async (vehicle: Vehicle) => {
       cancelButtonText: '取消',
       type: 'warning',
     })
-
     await vehicleStore.deleteVehicle(vehicle.id)
     ElMessage.success('删除成功')
     loadVehicles()
@@ -491,11 +448,9 @@ const handleDelete = async (vehicle: Vehicle) => {
     }
   }
 }
-
 const handleSubmit = async () => {
   try {
     submitting.value = true
-
     if (editingVehicle.value) {
       await vehicleStore.updateVehicle(editingVehicle.value.id, vehicleForm)
       ElMessage.success('更新成功')
@@ -503,7 +458,6 @@ const handleSubmit = async () => {
       await vehicleStore.createVehicle(vehicleForm)
       ElMessage.success('添加成功')
     }
-
     showAddDialog.value = false
     resetForm()
     loadVehicles()
@@ -513,7 +467,6 @@ const handleSubmit = async () => {
     submitting.value = false
   }
 }
-
 const resetForm = () => {
   editingVehicle.value = null
   Object.assign(vehicleForm, {
@@ -523,21 +476,17 @@ const resetForm = () => {
     status: 'active',
   })
 }
-
 const handleSelectionChange = (selection: Vehicle[]) => {
   selectedVehicles.value = selection
 }
-
 const handleSizeChange = (size: number) => {
   pageSize.value = size
   loadVehicles()
 }
-
 const handleCurrentChange = (page: number) => {
   currentPage.value = page
   loadVehicles()
 }
-
 // 排序处理
 const handleSortChange = ({ prop, order }: { prop: string; order: string | null }) => {
   sortField.value = prop || ''
@@ -545,13 +494,11 @@ const handleSortChange = ({ prop, order }: { prop: string; order: string | null 
   currentPage.value = 1 // 排序时重置到第一页
   loadVehicles()
 }
-
 // 车辆排序函数
 const sortVehicles = (vehicles: Vehicle[], field: string, order: 'ascending' | 'descending') => {
   return [...vehicles].sort((a, b) => {
     let aValue: any
     let bValue: any
-
     switch (field) {
       case 'id':
         aValue = a.id
@@ -573,7 +520,6 @@ const sortVehicles = (vehicles: Vehicle[], field: string, order: 'ascending' | '
         // 状态排序：基于审证日期计算状态优先级
         const aStatus = getVehicleStatus(a.inspection_date)
         const bStatus = getVehicleStatus(b.inspection_date)
-
         // 状态优先级：正常(0) > 即将到期(1) > 已过期(2)
         const statusOrder = { 正常: 0, 即将到期: 1, 已过期: 2 }
         aValue = statusOrder[aStatus.text as keyof typeof statusOrder]
@@ -582,7 +528,6 @@ const sortVehicles = (vehicles: Vehicle[], field: string, order: 'ascending' | '
       default:
         return 0
     }
-
     if (aValue < bValue) {
       return order === 'ascending' ? -1 : 1
     }
@@ -592,54 +537,43 @@ const sortVehicles = (vehicles: Vehicle[], field: string, order: 'ascending' | '
     return 0
   })
 }
-
 const handleFileChange = (file: any) => {
   selectedFile.value = file.raw
   console.log('文件选择:', file.raw)
 }
-
 const beforeUpload = (file: File) => {
   const isExcel =
     file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
     file.type === 'application/vnd.ms-excel'
   const isCSV = file.type === 'text/csv'
-
   if (!isExcel && !isCSV) {
     ElMessage.error('只能上传 Excel 或 CSV 文件!')
     return false
   }
-
   const isLt10M = file.size / 1024 / 1024 < 10
   if (!isLt10M) {
     ElMessage.error('文件大小不能超过 10MB!')
     return false
   }
-
   return true
 }
-
 const handleImport = async () => {
   if (!selectedFile.value) {
     ElMessage.warning('请先选择要导入的文件')
     return
   }
-
   try {
     importing.value = true
-
     // 解析文件
     const parseResult = await parseFile(selectedFile.value)
-
     if (parseResult.errors.length > 0) {
       ElMessage.error(`文件解析失败：${parseResult.errors.join('; ')}`)
       return
     }
-
     if (parseResult.data.length === 0) {
       ElMessage.warning('文件中没有有效数据')
       return
     }
-
     // 显示确认对话框
     const confirmResult = await ElMessageBox.confirm(
       `文件解析成功，共找到 ${parseResult.data.length} 条数据。\n\n导入规则：\n• 如果车牌号码已存在，将更新该车辆信息\n• 如果车牌号码不存在，将新增该车辆\n\n是否继续导入？`,
@@ -650,14 +584,11 @@ const handleImport = async () => {
         type: 'info',
       }
     )
-
     if (confirmResult !== 'confirm') {
       return
     }
-
     // 调用导入API
     const result = await vehicleStore.importVehicles(parseResult.data)
-
     // 显示导入结果
     const { summary } = result
     let message = `导入完成！\n`
@@ -665,20 +596,17 @@ const handleImport = async () => {
     message += `新增：${summary.created} 条\n`
     message += `更新：${summary.updated} 条\n`
     message += `失败：${summary.errors} 条`
-
     if (summary.errors > 0) {
       ElMessage.warning(message)
     } else {
       ElMessage.success(message)
     }
-
     // 关闭对话框并刷新数据
     showImportDialog.value = false
     selectedFile.value = null
     if (uploadRef.value) {
       uploadRef.value.clearFiles()
     }
-
     // 刷新车辆列表
     await loadVehicles()
   } catch (error) {
@@ -688,18 +616,15 @@ const handleImport = async () => {
     importing.value = false
   }
 }
-
 const formatDate = (date: string) => {
   return new Date(date).toLocaleDateString('zh-CN')
 }
-
 // 计算车辆状态
 const getVehicleStatus = (inspectionDate: string) => {
   const today = new Date()
   const inspection = new Date(inspectionDate)
   const diffTime = inspection.getTime() - today.getTime()
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-
   if (diffDays > 7) {
     return { type: 'success', text: '正常', color: 'green' }
   } else if (diffDays >= 0) {
@@ -708,7 +633,6 @@ const getVehicleStatus = (inspectionDate: string) => {
     return { type: 'danger', text: '已过期', color: 'red' }
   }
 }
-
 // 将状态值转换为状态文本
 const getStatusText = (statusValue: string) => {
   switch (statusValue) {
@@ -722,50 +646,41 @@ const getStatusText = (statusValue: string) => {
       return ''
   }
 }
-
 // 生命周期
 onMounted(() => {
   // 初始化时只加载公司列表和车牌号码列表，不加载车辆列表
   loadMetaData()
-
   // 初始化响应式检测
   checkScreenSize()
   window.addEventListener('resize', checkScreenSize)
 })
-
 onUnmounted(() => {
   window.removeEventListener('resize', checkScreenSize)
 })
 </script>
-
 <style scoped>
 .vehicle-management {
   max-width: 1200px;
   margin: 0 auto;
 }
-
 .card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
-
 .search-form {
   margin-bottom: 20px;
   padding: 20px;
   background-color: #f5f7fa;
   border-radius: 4px;
 }
-
 .pagination-container {
   margin-top: 20px;
   text-align: right;
 }
-
 .import-container {
   text-align: center;
 }
-
 .import-tips {
   margin-top: 20px;
   text-align: left;
@@ -773,27 +688,22 @@ onUnmounted(() => {
   padding: 15px;
   border-radius: 4px;
 }
-
 .import-tips h4 {
   margin: 0 0 10px 0;
   color: #409eff;
 }
-
 .empty-tip {
   margin: 40px 0;
   text-align: center;
 }
-
 .import-tips ul {
   margin: 0;
   padding-left: 20px;
 }
-
 .import-tips li {
   margin-bottom: 5px;
   color: #606266;
 }
-
 /* 响应式设计 */
 @media (max-width: 768px) {
   .vehicle-management {
@@ -868,7 +778,6 @@ onUnmounted(() => {
     padding-bottom: 15px;
   }
 }
-
 @media (max-width: 480px) {
   .card-header {
     gap: 10px;
@@ -902,5 +811,17 @@ onUnmounted(() => {
   .pagination-container {
     margin-top: 10px;
   }
+}
+
+/* 表格排序图标修复 */
+.el-table .el-table__header-wrapper .el-table__header th .cell {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.el-table .el-table__header-wrapper .el-table__header th .cell .el-table__column-sort {
+  margin-left: auto;
+  flex-shrink: 0;
 }
 </style>
