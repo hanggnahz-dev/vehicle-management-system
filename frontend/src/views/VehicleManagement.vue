@@ -45,7 +45,7 @@
             v-model="searchForm.status"
             placeholder="请选择状态"
             clearable
-            :style="isMobile ? 'width: 100%' : 'width: 120px'"
+            :style="isMobile ? 'width: 100%' : 'width: 120px'" @change="handleStatusChange"
           >
             <el-option label="正常" value="normal" />
             <el-option label="即将到期" value="expiring" />
@@ -407,6 +407,12 @@ const handleCompanyChange = async (companyName: string) => {
   loadVehicles()
 }
 const handleSearch = () => {
+  currentPage.value = 1
+  loadVehicles()
+}
+const handleStatusChange = (status: string) => {
+  console.log('车辆状态改变:', status)
+  // 当状态改变时，重新加载车辆列表
   currentPage.value = 1
   loadVehicles()
 }
