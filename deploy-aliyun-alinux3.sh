@@ -276,7 +276,8 @@ install_dependencies() {
         policycoreutils-python-utils \
         selinux-policy-devel \
         cloud-init \
-        cloud-utils-growpart
+        cloud-utils-growpart \
+        jq
     
     # 启动并启用firewalld
     systemctl start firewalld
@@ -828,20 +829,37 @@ configure_aliyun_security_group() {
         INSTANCE_ID=$(curl -s http://100.100.100.200/latest/meta-data/instance-id)
         
         # 获取安全组ID
-        SECURITY_GROUP_ID=$(aliyun ecs DescribeInstances --InstanceIds "[\"$INSTANCE_ID\"]" --query 'Instances.Instance[0].SecurityGroupIds.SecurityGroupId[0]' --output text)
+        log_info "获取实例安全组信息..."
+        INSTANCE_INFO=$(aliyun ecs DescribeInstances --InstanceIds "[\"$INSTANCE_ID\"]" --output json)
         
-        # 添加安全组规则
-        aliyun ecs AuthorizeSecurityGroup \
-            --SecurityGroupId $SECURITY_GROUP_ID \
-            --IpProtocol tcp \
-            --PortRange 80/80 \
-            --SourceCidrIp 0.0.0.0/0
-        
-        aliyun ecs AuthorizeSecurityGroup \
-            --SecurityGroupId $SECURITY_GROUP_ID \
-            --IpProtocol tcp \
-            --PortRange 443/443 \
-            --SourceCidrIp 0.0.0.0/0
+        if [[ $? -eq 0 && -n "$INSTANCE_INFO" ]]; then
+            SECURITY_GROUP_ID=$(echo "$INSTANCE_INFO" | jq -r '.Instances.Instance[0].SecurityGroupIds.SecurityGroupId[0]')
+            
+            if [[ "$SECURITY_GROUP_ID" != "null" && -n "$SECURITY_GROUP_ID" ]]; then
+                log_info "找到安全组ID: $SECURITY_GROUP_ID"
+                
+                # 添加安全组规则
+                log_info "添加HTTP端口(80)安全组规则..."
+                aliyun ecs AuthorizeSecurityGroup \
+                    --SecurityGroupId $SECURITY_GROUP_ID \
+                    --IpProtocol tcp \
+                    --PortRange 80/80 \
+                    --SourceCidrIp 0.0.0.0/0
+                
+                log_info "添加HTTPS端口(443)安全组规则..."
+                aliyun ecs AuthorizeSecurityGroup \
+                    --SecurityGroupId $SECURITY_GROUP_ID \
+                    --IpProtocol tcp \
+                    --PortRange 443/443 \
+                    --SourceCidrIp 0.0.0.0/0
+            else
+                log_error "无法获取安全组ID"
+                return 1
+            fi
+        else
+            log_error "无法获取实例信息"
+            return 1
+        fi
         
         log_success "阿里云安全组配置完成"
     else
