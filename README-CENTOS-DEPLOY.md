@@ -7,6 +7,7 @@
 ## 支持的 CentOS 系列系统
 
 ### 官方支持
+
 - **CentOS 7/8/9** - 社区企业操作系统
 - **Red Hat Enterprise Linux (RHEL)** - 红帽企业 Linux
 - **Rocky Linux** - CentOS 的社区替代品
@@ -14,6 +15,7 @@
 - **Alibaba Cloud Linux** - 阿里云定制 Linux
 
 ### 包管理器支持
+
 - **yum** - CentOS 7 及更早版本
 - **dnf** - CentOS 8+、Rocky Linux、AlmaLinux
 
@@ -22,6 +24,7 @@
 ### 1. 阿里云资源准备
 
 #### ECS 实例要求
+
 - **操作系统**: CentOS 7.0+ / RHEL 7.0+ / Rocky Linux 8.0+ / AlmaLinux 8.0+ / Alibaba Cloud Linux 2.0+
 - **CPU**: 1 核以上
 - **内存**: 2GB 以上
@@ -29,6 +32,7 @@
 - **网络**: 公网 IP 或弹性公网 IP
 
 #### 域名准备（可选）
+
 - 已备案的域名
 - 域名解析权限
 
@@ -66,34 +70,40 @@ chmod +x deploy-aliyun.sh
 ## 部署流程
 
 ### 1. 系统检测
+
 - 自动检测 CentOS 系列系统
 - 识别包管理器（yum/dnf）
 - 验证系统版本兼容性
 
 ### 2. 依赖安装
+
 - 安装 EPEL 仓库
 - 安装基础开发工具
 - 安装 Python 开发环境
 - 安装 Nginx 和防火墙
 
 ### 3. 运行时环境
+
 - 安装 Node.js 20.x（通过 NodeSource RPM 仓库）
 - 安装 Docker 和 Docker Compose
 - 安装 PM2 进程管理器
 
 ### 4. 项目部署
+
 - 部署项目文件
 - 安装项目依赖
 - 构建前端项目
 - 配置环境变量
 
 ### 5. 服务配置
+
 - 创建 systemd 服务文件
 - 配置 Nginx 反向代理
 - 申请 SSL 证书
 - 配置防火墙规则
 
 ### 6. 阿里云集成
+
 - 安装阿里云 CLI
 - 配置安全组规则
 - 设置监控和告警
@@ -103,6 +113,7 @@ chmod +x deploy-aliyun.sh
 ### 1. 包管理器配置
 
 #### CentOS 7 及更早版本
+
 ```bash
 # 使用 yum 包管理器
 yum update -y
@@ -111,6 +122,7 @@ yum install -y nginx firewalld certbot
 ```
 
 #### CentOS 8+ / Rocky Linux / AlmaLinux
+
 ```bash
 # 使用 dnf 包管理器
 dnf update -y
@@ -121,6 +133,7 @@ dnf install -y nginx firewalld certbot
 ### 2. 防火墙配置
 
 #### firewalld 配置
+
 ```bash
 # 启动并启用 firewalld
 systemctl start firewalld
@@ -143,6 +156,7 @@ firewall-cmd --list-all
 ### 3. Nginx 配置
 
 #### CentOS 系列 Nginx 配置
+
 ```bash
 # 配置文件位置
 /etc/nginx/conf.d/vehicle-management.conf
@@ -158,6 +172,7 @@ systemctl enable nginx
 ### 4. Node.js 安装
 
 #### 通过 NodeSource RPM 仓库
+
 ```bash
 # 添加 NodeSource 仓库
 curl -fsSL https://rpm.nodesource.com/setup_20.x | bash -
@@ -172,6 +187,7 @@ dnf install -y nodejs  # CentOS 8+
 ### 1. systemd 服务
 
 #### 查看服务状态
+
 ```bash
 systemctl status vehicle-backend
 systemctl status vehicle-frontend
@@ -180,6 +196,7 @@ systemctl status firewalld
 ```
 
 #### 启动/停止/重启服务
+
 ```bash
 # 启动服务
 systemctl start vehicle-backend
@@ -199,6 +216,7 @@ systemctl enable vehicle-frontend
 ```
 
 #### 查看服务日志
+
 ```bash
 journalctl -u vehicle-backend -f
 journalctl -u vehicle-frontend -f
@@ -208,12 +226,14 @@ journalctl -u nginx -f
 ### 2. 防火墙管理
 
 #### 查看防火墙状态
+
 ```bash
 firewall-cmd --state
 firewall-cmd --list-all
 ```
 
 #### 添加/删除规则
+
 ```bash
 # 添加端口
 firewall-cmd --permanent --add-port=8080/tcp
@@ -230,6 +250,7 @@ firewall-cmd --reload
 ### 1. 包管理器问题
 
 #### yum 错误
+
 ```bash
 # 清理 yum 缓存
 yum clean all
@@ -240,6 +261,7 @@ yum repolist
 ```
 
 #### dnf 错误
+
 ```bash
 # 清理 dnf 缓存
 dnf clean all
@@ -252,6 +274,7 @@ dnf repolist
 ### 2. 防火墙问题
 
 #### firewalld 无法启动
+
 ```bash
 # 检查 firewalld 状态
 systemctl status firewalld
@@ -266,6 +289,7 @@ systemctl start firewalld
 ```
 
 #### 防火墙规则不生效
+
 ```bash
 # 检查规则是否永久保存
 firewall-cmd --list-all --permanent
@@ -280,6 +304,7 @@ systemctl restart firewalld
 ### 3. Nginx 问题
 
 #### Nginx 配置错误
+
 ```bash
 # 测试配置文件
 nginx -t
@@ -292,6 +317,7 @@ systemctl reload nginx
 ```
 
 #### 端口占用
+
 ```bash
 # 查看端口占用
 netstat -tlnp | grep :80
@@ -304,6 +330,7 @@ kill -9 <PID>
 ### 4. Node.js 问题
 
 #### Node.js 版本问题
+
 ```bash
 # 检查 Node.js 版本
 node --version
@@ -317,6 +344,7 @@ dnf install -y nodejs
 ```
 
 #### npm 权限问题
+
 ```bash
 # 修复 npm 权限
 npm config set prefix ~/.npm-global
@@ -331,6 +359,7 @@ sudo npm install -g pm2
 ### 1. 系统优化
 
 #### 内核参数优化
+
 ```bash
 # 编辑 /etc/sysctl.conf
 echo "net.core.somaxconn = 65535" >> /etc/sysctl.conf
@@ -341,6 +370,7 @@ sysctl -p
 ```
 
 #### 文件描述符限制
+
 ```bash
 # 编辑 /etc/security/limits.conf
 echo "* soft nofile 65535" >> /etc/security/limits.conf
@@ -350,6 +380,7 @@ echo "* hard nofile 65535" >> /etc/security/limits.conf
 ### 2. Nginx 优化
 
 #### 编辑 /etc/nginx/nginx.conf
+
 ```nginx
 worker_processes auto;
 worker_connections 1024;
@@ -367,6 +398,7 @@ location ~* \.(jpg|jpeg|png|gif|ico|css|js)$ {
 ### 3. Node.js 优化
 
 #### 设置环境变量
+
 ```bash
 # 编辑 /etc/systemd/system/vehicle-backend.service
 Environment=NODE_ENV=production
@@ -378,12 +410,14 @@ Environment=NODE_OPTIONS="--max-old-space-size=1024"
 ### 1. SELinux 配置
 
 #### 检查 SELinux 状态
+
 ```bash
 sestatus
 getenforce
 ```
 
 #### 配置 SELinux
+
 ```bash
 # 临时禁用 SELinux
 setenforce 0
@@ -395,6 +429,7 @@ sed -i 's/SELINUX=enforcing/SELINUX=disabled/' /etc/selinux/config
 ### 2. 系统更新
 
 #### 定期更新系统
+
 ```bash
 # CentOS 7
 yum update -y
@@ -409,6 +444,7 @@ reboot
 ### 3. 安全加固
 
 #### 配置 SSH
+
 ```bash
 # 编辑 /etc/ssh/sshd_config
 PermitRootLogin no
@@ -424,6 +460,7 @@ systemctl restart sshd
 ### 1. 系统监控
 
 #### 安装监控工具
+
 ```bash
 # 安装 htop
 yum install -y htop
@@ -437,6 +474,7 @@ dnf install -y iotop
 ```
 
 #### 查看系统资源
+
 ```bash
 # CPU 使用率
 top
@@ -455,6 +493,7 @@ netstat -tlnp
 ### 2. 日志管理
 
 #### 配置日志轮转
+
 ```bash
 # 编辑 /etc/logrotate.d/vehicle-management
 /opt/vehicle-management/logs/*.log {
@@ -471,6 +510,7 @@ netstat -tlnp
 ### 3. 备份策略
 
 #### 数据库备份
+
 ```bash
 # 创建备份脚本
 cat > /opt/backup-db.sh << 'EOF'
@@ -503,6 +543,7 @@ CentOS 系列部署脚本为车辆管理系统提供了完整的云原生部署�
 ## 支持
 
 如遇到问题，请检查：
+
 1. 阿里云控制台：检查实例和安全组状态
 2. 系统日志：`journalctl -u vehicle-backend -f`
 3. 服务状态：`systemctl status vehicle-backend`
