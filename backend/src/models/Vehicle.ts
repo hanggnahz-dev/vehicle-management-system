@@ -19,8 +19,8 @@ export class VehicleModel {
 
     if (filter) {
       if (filter.company_name) {
-        query += ' AND company_name LIKE ?'
-        params.push(`%${filter.company_name}%`)
+        query += ' AND company_name = ?'
+        params.push(filter.company_name)
       }
 
       if (filter.license_plate) {
@@ -58,8 +58,8 @@ export class VehicleModel {
 
     if (filter) {
       if (filter.company_name) {
-        whereClause += ' AND company_name LIKE ?'
-        params.push(`%${filter.company_name}%`)
+        whereClause += ' AND company_name = ?'
+        params.push(filter.company_name)
       }
 
       if (filter.license_plate) {

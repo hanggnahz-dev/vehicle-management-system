@@ -74,7 +74,6 @@
         @sort-change="handleSortChange"
       >
         <el-table-column type="selection" width="55" />
-        <el-table-column prop="id" label="ID" min-width="80" sortable="custom" />
         <el-table-column prop="company_name" label="公司名称" min-width="150" sortable="custom" />
         <el-table-column prop="license_plate" label="车牌号码" min-width="120" sortable="custom" />
         <el-table-column prop="inspection_date" label="审证日期" min-width="120" sortable="custom">
