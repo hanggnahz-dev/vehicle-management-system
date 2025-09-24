@@ -8,11 +8,30 @@
       </template>
       <div class="welcome-content">
         <el-row :gutter="20">
-          <el-col :xs="24" :sm="12" :md="12" :lg="12" :xl="12">
+          <el-col :xs="24" :sm="12" :md="8" :lg="8" :xl="8">
             <el-statistic title="公司数量" :value="companyCount" />
           </el-col>
-          <el-col :xs="24" :sm="12" :md="12" :lg="12" :xl="12">
+          <el-col :xs="24" :sm="12" :md="8" :lg="8" :xl="8">
             <el-statistic title="车辆总数" :value="vehicleCount" />
+          </el-col>
+          <el-col :xs="24" :sm="12" :md="8" :lg="8" :xl="8">
+            <el-statistic title="正常车辆" :value="normalCount" />
+          </el-col>
+        </el-row>
+        <el-row :gutter="20" style="margin-top: 20px">
+          <el-col :xs="24" :sm="12" :md="12" :lg="12" :xl="12">
+            <el-statistic title="即将到期" :value="expiringCount">
+              <template #suffix>
+                <el-tag type="warning" size="small">即将到期</el-tag>
+              </template>
+            </el-statistic>
+          </el-col>
+          <el-col :xs="24" :sm="12" :md="12" :lg="12" :xl="12">
+            <el-statistic title="已过期" :value="expiredCount">
+              <template #suffix>
+                <el-tag type="danger" size="small">已过期</el-tag>
+              </template>
+            </el-statistic>
           </el-col>
         </el-row>
         <el-divider />
@@ -71,6 +90,9 @@ const vehicleStore = useVehicleStore()
 
 const companyCount = ref(0)
 const vehicleCount = ref(0)
+const normalCount = ref(0)
+const expiringCount = ref(0)
+const expiredCount = ref(0)
 const loading = ref(false)
 const companyVehicleData = ref<
   Array<{
@@ -151,6 +173,26 @@ const fetchData = async () => {
 
     // 计算各公司车辆统计
     companyVehicleData.value = calculateCompanyStats(allVehiclesData.vehicles)
+
+    // 计算车辆状态统计
+    let normal = 0
+    let expiring = 0
+    let expired = 0
+    
+    allVehiclesData.vehicles.forEach(vehicle => {
+      const status = getVehicleStatus(vehicle.inspection_date)
+      if (status === 'normal') {
+        normal++
+      } else if (status === 'expiring') {
+        expiring++
+      } else {
+        expired++
+      }
+    })
+    
+    normalCount.value = normal
+    expiringCount.value = expiring
+    expiredCount.value = expired
 
     ElMessage.success('数据获取成功')
   } catch (error) {
