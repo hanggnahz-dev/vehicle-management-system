@@ -82,19 +82,25 @@ export class VehicleModel {
         params.push(`%${filter.license_plate}%`)
       }
 
-      // 状态筛选：直接在SQL中计算
+      // 状态筛选：直接在SQL中计算（使用本地日期避免时区问题）
       if (filter.status) {
         console.log('状态筛选条件:', filter.status)
+        // 获取当前本地日期（YYYY-MM-DD格式）
+        const today = new Date().toISOString().split('T')[0]
+        console.log('当前本地日期:', today)
+        
         if (filter.status === 'normal') {
           // 正常：审证日期距离今天超过7天
-          whereClause += ' AND (julianday(inspection_date) - julianday("now")) > 7'
+          whereClause += ' AND (julianday(inspection_date) - julianday(?)) > 7'
+          params.push(today)
         } else if (filter.status === 'expiring') {
           // 即将到期：审证日期距离今天0-7天
-          whereClause +=
-            ' AND (julianday(inspection_date) - julianday("now")) >= 0 AND (julianday(inspection_date) - julianday("now")) <= 7'
+          whereClause += ' AND (julianday(inspection_date) - julianday(?)) >= 0 AND (julianday(inspection_date) - julianday(?)) <= 7'
+          params.push(today, today)
         } else if (filter.status === 'expired') {
           // 已过期：审证日期距离今天小于0天
-          whereClause += ' AND (julianday(inspection_date) - julianday("now")) < 0'
+          whereClause += ' AND (julianday(inspection_date) - julianday(?)) < 0'
+          params.push(today)
         }
       }
     }
