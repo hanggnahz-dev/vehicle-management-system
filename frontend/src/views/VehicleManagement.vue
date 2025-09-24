@@ -319,31 +319,22 @@ const loadVehicles = async () => {
       company_name: searchForm.company_name,
       license_plate: searchForm.license_plate,
     }
-    console.log('加载车辆数据，筛选条件:', filter)
     await vehicleStore.fetchVehicles(filter, currentPage.value, pageSize.value)
-    console.log('后端返回的车辆数据:', vehicleStore.vehicles)
-    
     // 如果有状态过滤条件，在前端进行过滤
-    let filteredVehicles = [...vehicleStore.vehicles] // 创建副本，避免修改原始数据
+    let filteredVehicles = vehicleStore.vehicles
     if (searchForm.status) {
-      filteredVehicles = filteredVehicles.filter(vehicle => {
+      filteredVehicles = vehicleStore.vehicles.filter(vehicle => {
         const status = getVehicleStatus(vehicle.inspection_date)
         return status.text === getStatusText(searchForm.status!)
       })
-      console.log('状态过滤后的车辆数据:', filteredVehicles)
     }
-    
     // 应用排序
     if (sortField.value && sortOrder.value) {
       filteredVehicles = sortVehicles(filteredVehicles, sortField.value, sortOrder.value)
-      console.log('排序后的车辆数据:', filteredVehicles)
     }
-    
     // 更新车辆列表为过滤和排序后的结果
     vehicleStore.vehicles = filteredVehicles
-    console.log('最终显示的车辆数据:', vehicleStore.vehicles)
   } catch (error) {
-    console.error('加载车辆列表失败:', error)
     ElMessage.error('加载车辆列表失败')
   } finally {
     loading.value = false
@@ -410,6 +401,9 @@ const handleLicensePlateInput = (value: string) => {
 }
 const handleCompanyChange = async (companyName: string) => {
   console.log('公司选择改变:', companyName)
+  // 更新搜索表单中的公司名称
+  searchForm.company_name = companyName
+  console.log('更新后的搜索表单:', searchForm)
   // 当选择公司时，重新加载车辆列表
   currentPage.value = 1
   loadVehicles()
