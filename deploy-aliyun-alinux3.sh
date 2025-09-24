@@ -826,44 +826,146 @@ configure_aliyun_security_group() {
             --access-key-secret $ALIYUN_SECRET_KEY
         
         # 获取当前实例ID
+        log_info "获取当前实例ID..."
         INSTANCE_ID=$(curl -s http://100.100.100.200/latest/meta-data/instance-id)
+        
+        if [[ -z "$INSTANCE_ID" || "$INSTANCE_ID" == "null" ]]; then
+            log_error "无法获取实例ID，请确保在阿里云ECS实例上运行"
+            return 1
+        fi
+        
+        log_info "当前实例ID: $INSTANCE_ID"
         
         # 获取安全组ID
         log_info "获取实例安全组信息..."
-        INSTANCE_INFO=$(aliyun ecs DescribeInstances --InstanceIds "[\"$INSTANCE_ID\"]" --output json)
         
-        if [[ $? -eq 0 && -n "$INSTANCE_INFO" ]]; then
-            SECURITY_GROUP_ID=$(echo "$INSTANCE_INFO" | jq -r '.Instances.Instance[0].SecurityGroupIds.SecurityGroupId[0]')
+        # 尝试不同的参数格式
+        INSTANCE_INFO=$(aliyun ecs DescribeInstances --InstanceIds "[\"$INSTANCE_ID\"]" --output json 2>&1)
+        ALIYUN_EXIT_CODE=$?
+        
+        if [[ $ALIYUN_EXIT_CODE -ne 0 ]]; then
+            log_error "阿里云CLI命令执行失败，退出码: $ALIYUN_EXIT_CODE"
+            log_error "错误信息: $INSTANCE_INFO"
             
-            if [[ "$SECURITY_GROUP_ID" != "null" && -n "$SECURITY_GROUP_ID" ]]; then
-                log_info "找到安全组ID: $SECURITY_GROUP_ID"
+            # 尝试使用不同的参数格式
+            log_info "尝试使用不同的参数格式..."
+            INSTANCE_INFO=$(aliyun ecs DescribeInstances --InstanceIds "$INSTANCE_ID" --output json 2>&1)
+            ALIYUN_EXIT_CODE=$?
+            
+            if [[ $ALIYUN_EXIT_CODE -ne 0 ]]; then
+                log_error "使用不同参数格式仍然失败"
+                log_error "错误信息: $INSTANCE_INFO"
                 
-                # 添加安全组规则
-                log_info "添加HTTP端口(80)安全组规则..."
-                aliyun ecs AuthorizeSecurityGroup \
-                    --SecurityGroupId $SECURITY_GROUP_ID \
-                    --IpProtocol tcp \
-                    --PortRange 80/80 \
-                    --SourceCidrIp 0.0.0.0/0
+                # 尝试使用DescribeSecurityGroups API作为备用方案
+                log_info "尝试使用DescribeSecurityGroups API获取安全组信息..."
+                SECURITY_GROUPS_INFO=$(aliyun ecs DescribeSecurityGroups --output json 2>&1)
                 
-                log_info "添加HTTPS端口(443)安全组规则..."
-                aliyun ecs AuthorizeSecurityGroup \
-                    --SecurityGroupId $SECURITY_GROUP_ID \
-                    --IpProtocol tcp \
-                    --PortRange 443/443 \
-                    --SourceCidrIp 0.0.0.0/0
+                if [[ $? -eq 0 && -n "$SECURITY_GROUPS_INFO" ]]; then
+                    # 获取第一个安全组ID
+                    SECURITY_GROUP_ID=$(echo "$SECURITY_GROUPS_INFO" | jq -r '.SecurityGroups.SecurityGroup[0].SecurityGroupId')
+                    
+                    if [[ "$SECURITY_GROUP_ID" != "null" && -n "$SECURITY_GROUP_ID" ]]; then
+                        log_info "通过DescribeSecurityGroups找到安全组ID: $SECURITY_GROUP_ID"
+                        
+                        # 添加安全组规则
+                        log_info "添加HTTP端口(80)安全组规则..."
+                        if aliyun ecs AuthorizeSecurityGroup \
+                            --SecurityGroupId $SECURITY_GROUP_ID \
+                            --IpProtocol tcp \
+                            --PortRange 80/80 \
+                            --SourceCidrIp 0.0.0.0/0; then
+                            log_success "HTTP端口(80)安全组规则添加成功"
+                        else
+                            log_warning "HTTP端口(80)安全组规则添加失败（可能已存在）"
+                        fi
+                        
+                        log_info "添加HTTPS端口(443)安全组规则..."
+                        if aliyun ecs AuthorizeSecurityGroup \
+                            --SecurityGroupId $SECURITY_GROUP_ID \
+                            --IpProtocol tcp \
+                            --PortRange 443/443 \
+                            --SourceCidrIp 0.0.0.0/0; then
+                            log_success "HTTPS端口(443)安全组规则添加成功"
+                        else
+                            log_warning "HTTPS端口(443)安全组规则添加失败（可能已存在）"
+                        fi
+                        
+                        log_success "阿里云安全组配置完成（通过备用方案）"
+                        return 0
+                    else
+                        log_error "无法通过DescribeSecurityGroups获取安全组ID"
+                        return 1
+                    fi
+                else
+                    log_error "DescribeSecurityGroups API也失败"
+                    log_error "错误信息: $SECURITY_GROUPS_INFO"
+                    return 1
+                fi
+            fi
+        fi
+        
+        if [[ -n "$INSTANCE_INFO" && "$INSTANCE_INFO" != *"error"* ]]; then
+            # 检查返回的JSON是否有效
+            if echo "$INSTANCE_INFO" | jq . >/dev/null 2>&1; then
+                SECURITY_GROUP_ID=$(echo "$INSTANCE_INFO" | jq -r '.Instances.Instance[0].SecurityGroupIds.SecurityGroupId[0]')
+                
+                if [[ "$SECURITY_GROUP_ID" != "null" && -n "$SECURITY_GROUP_ID" ]]; then
+                    log_info "找到安全组ID: $SECURITY_GROUP_ID"
+                    
+                    # 添加安全组规则
+                    log_info "添加HTTP端口(80)安全组规则..."
+                    if aliyun ecs AuthorizeSecurityGroup \
+                        --SecurityGroupId $SECURITY_GROUP_ID \
+                        --IpProtocol tcp \
+                        --PortRange 80/80 \
+                        --SourceCidrIp 0.0.0.0/0; then
+                        log_success "HTTP端口(80)安全组规则添加成功"
+                    else
+                        log_warning "HTTP端口(80)安全组规则添加失败（可能已存在）"
+                    fi
+                    
+                    log_info "添加HTTPS端口(443)安全组规则..."
+                    if aliyun ecs AuthorizeSecurityGroup \
+                        --SecurityGroupId $SECURITY_GROUP_ID \
+                        --IpProtocol tcp \
+                        --PortRange 443/443 \
+                        --SourceCidrIp 0.0.0.0/0; then
+                        log_success "HTTPS端口(443)安全组规则添加成功"
+                    else
+                        log_warning "HTTPS端口(443)安全组规则添加失败（可能已存在）"
+                    fi
+                else
+                    log_error "无法从实例信息中提取安全组ID"
+                    log_error "实例信息: $INSTANCE_INFO"
+                    return 1
+                fi
             else
-                log_error "无法获取安全组ID"
+                log_error "返回的实例信息不是有效的JSON格式"
+                log_error "原始信息: $INSTANCE_INFO"
                 return 1
             fi
         else
-            log_error "无法获取实例信息"
+            log_error "无法获取实例信息或返回错误"
+            log_error "错误信息: $INSTANCE_INFO"
             return 1
         fi
         
         log_success "阿里云安全组配置完成"
     else
         log_warning "跳过阿里云安全组配置（需要Access Key）"
+        
+        # 提供手动配置指导
+        log_info "手动配置安全组规则："
+        log_info "1. 登录阿里云控制台"
+        log_info "2. 进入ECS实例管理"
+        log_info "3. 找到当前实例的安全组"
+        log_info "4. 添加入方向规则："
+        log_info "   - 协议类型：TCP"
+        log_info "   - 端口范围：80/80"
+        log_info "   - 授权对象：0.0.0.0/0"
+        log_info "   - 协议类型：TCP"
+        log_info "   - 端口范围：443/443"
+        log_info "   - 授权对象：0.0.0.0/0"
     fi
 }
 
