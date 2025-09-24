@@ -3,7 +3,7 @@
     <el-card>
       <template #header>
         <div class="card-header">
-          <span>车辆管理</span>
+          <span class="page-title">车辆管理</span>
           <div class="header-buttons">
             <el-button type="primary" @click="showAddDialog = true">
               <el-icon><Plus /></el-icon>
@@ -779,6 +779,9 @@ onUnmounted(() => {
   }
 }
 @media (max-width: 480px) {
+  .page-title {
+    display: none;
+  }
   .card-header {
     gap: 10px;
   }
