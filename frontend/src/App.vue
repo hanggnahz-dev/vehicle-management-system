@@ -135,6 +135,9 @@ const handleCommand = async (command: string) => {
 
 .user-info {
   padding-right: 20px;
+  height: 60px;
+  display: flex;
+  align-items: center;
 }
 
 .user-dropdown {
@@ -256,6 +259,9 @@ const handleCommand = async (command: string) => {
 
   .user-info {
     padding-right: 10px;
+    height: 60px;
+    display: flex;
+    align-items: center;
   }
 
   .el-main {
