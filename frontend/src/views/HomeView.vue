@@ -17,13 +17,13 @@
         </el-row>
         <el-row :gutter="20" style="margin-top: 20px">
           <el-col :xs="24" :sm="12" :md="8" :lg="8" :xl="8">
-            <el-statistic title="正常车辆" :value="normalCount" />
+            <el-statistic title="正常车辆" :value="normalCount" value-style="color: #67c23a" />
           </el-col>
           <el-col :xs="24" :sm="12" :md="8" :lg="8" :xl="8">
-            <el-statistic title="即将到期" :value="expiringCount" />
+            <el-statistic title="即将到期" :value="expiringCount" value-style="color: #e6a23c" />
           </el-col>
           <el-col :xs="24" :sm="12" :md="8" :lg="8" :xl="8">
-            <el-statistic title="已过期" :value="expiredCount" />
+            <el-statistic title="已过期" :value="expiredCount" value-style="color: #f56c6c" />
           </el-col>
         </el-row>
         <el-divider />
