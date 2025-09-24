@@ -95,10 +95,15 @@ export class VehicleModel {
     // 如果有状态筛选，进行前端筛选
     let filteredVehicles = allRows
     if (filter?.status) {
+      console.log('状态筛选条件:', filter.status)
+      console.log('筛选前车辆数量:', allRows.length)
       filteredVehicles = allRows.filter(vehicle => {
         const status = this.getVehicleStatus(vehicle.inspection_date)
-        return status === filter.status
+        const matches = status === filter.status
+        console.log(`车辆 ${vehicle.license_plate} (${vehicle.inspection_date}) -> 状态: ${status}, 匹配: ${matches}`)
+        return matches
       })
+      console.log('筛选后车辆数量:', filteredVehicles.length)
     }
 
     // 计算总数

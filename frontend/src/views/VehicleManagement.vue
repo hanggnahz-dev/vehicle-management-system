@@ -320,7 +320,9 @@ const loadVehicles = async () => {
       status: searchForm.status,
       license_plate: searchForm.license_plate,
     }
+    console.log('前端发送的筛选条件:', filter)
     await vehicleStore.fetchVehicles(filter, currentPage.value, pageSize.value)
+    console.log('后端返回的车辆数据:', vehicleStore.vehicles)
     // 状态筛选现在由后端处理，前端只需要处理排序
     let sortedVehicles = [...vehicleStore.vehicles]
     if (sortField.value && sortOrder.value) {
