@@ -248,7 +248,7 @@ const handleCommand = async (command: string) => {
   .user-name {
     display: none;
   }
-  
+
   .user-dropdown .el-icon {
     font-size: 20px;
     margin: 0 4px;

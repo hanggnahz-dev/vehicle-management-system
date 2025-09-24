@@ -27,13 +27,13 @@
         </div>
       </template>
       <el-table :data="companyVehicleData" style="width: 100%" v-loading="loading">
-        <el-table-column prop="company_name" label="公司名称" />
-        <el-table-column prop="vehicle_count" label="车辆数量" width="120">
+        <el-table-column prop="company_name" label="公司名称" min-width="200" />
+        <el-table-column prop="vehicle_count" label="车辆数量" min-width="120">
           <template #default="scope">
             <el-tag type="primary">{{ scope.row.vehicle_count }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="normal_count" label="正常" width="100">
+        <el-table-column prop="normal_count" label="正常" min-width="100">
           <template #default="scope">
             <el-tag type="success" v-if="scope.row.normal_count > 0">{{
               scope.row.normal_count
@@ -41,7 +41,7 @@
             <span v-else>-</span>
           </template>
         </el-table-column>
-        <el-table-column prop="expiring_count" label="即将到期" width="120">
+        <el-table-column prop="expiring_count" label="即将到期" min-width="120">
           <template #default="scope">
             <el-tag type="warning" v-if="scope.row.expiring_count > 0">{{
               scope.row.expiring_count
@@ -49,7 +49,7 @@
             <span v-else>-</span>
           </template>
         </el-table-column>
-        <el-table-column prop="expired_count" label="已过期" width="100">
+        <el-table-column prop="expired_count" label="已过期" min-width="100">
           <template #default="scope">
             <el-tag type="danger" v-if="scope.row.expired_count > 0">{{
               scope.row.expired_count
