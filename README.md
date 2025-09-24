@@ -167,6 +167,27 @@ chmod +x deploy-aliyun-centos.sh
 - ✅ EPEL 仓库自动安装
 - ✅ NodeSource RPM 仓库支持
 
+#### Alibaba Cloud Linux 3 专用部署
+
+```bash
+# 下载项目
+git clone <your-repo-url>
+cd fullstack-project
+
+# 运行 Alibaba Cloud Linux 3 专用部署脚本
+chmod +x deploy-aliyun-alinux3.sh
+./deploy-aliyun-alinux3.sh
+```
+
+**Alibaba Cloud Linux 3 部署特性：**
+
+- ✅ 专门针对 Alibaba Cloud Linux 3 优化
+- ✅ 阿里云镜像源自动配置
+- ✅ Docker 镜像加速器配置
+- ✅ 内核参数和系统优化
+- ✅ 阿里云工具深度集成
+- ✅ 性能监控和告警配置
+
 ### 🍎 Mac 用户快速开始
 
 如果您使用的是 Mac 系统，推荐使用以下方式快速启动：
