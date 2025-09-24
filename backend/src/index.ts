@@ -21,6 +21,10 @@ const PORT = process.env.PORT || 5000
 // 安全中间件
 app.use(helmet())
 
+// 字符编码处理
+app.use(express.urlencoded({ extended: true, limit: '10mb' }))
+app.use(express.json({ limit: '10mb' }))
+
 // CORS配置
 app.use(
   cors({
@@ -31,10 +35,6 @@ app.use(
 
 // 请求日志
 app.use(morgan('combined'))
-
-// 请求体解析
-app.use(express.json({ limit: '10mb' }))
-app.use(express.urlencoded({ extended: true }))
 
 // 限流中间件
 const limiter = rateLimit({

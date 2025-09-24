@@ -17,6 +17,17 @@ export class VehicleController {
       console.log('初始filter:', filter)
       console.log('status参数类型:', typeof filter.status)
       console.log('status参数值:', filter.status)
+      
+      // 字符编码处理
+      if (filter.company_name) {
+        try {
+          // 尝试解码URL编码的中文字符
+          filter.company_name = decodeURIComponent(filter.company_name)
+          console.log('解码后的公司名称:', filter.company_name)
+        } catch (error) {
+          console.log('公司名称解码失败:', error)
+        }
+      }
 
       // 分页参数
       const page = parseInt(req.query.page as string) || 1
