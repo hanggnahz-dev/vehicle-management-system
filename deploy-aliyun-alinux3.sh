@@ -551,7 +551,7 @@ NODE_ENV=production
 PORT=5000
 
 # 数据库配置
-DB_PATH=$PROJECT_DIR/data/database.sqlite
+DATABASE_PATH=$PROJECT_DIR/data/database.sqlite
 
 # JWT配置
 JWT_SECRET=$(openssl rand -base64 32)
@@ -568,6 +568,16 @@ ALIYUN_REGION=$REGION
 # Alibaba Cloud Linux 3优化配置
 ALINUX3_OPTIMIZED=true
 EOF
+    
+    # 创建数据库目录并设置权限
+    log_info "创建数据库目录并设置权限..."
+    mkdir -p $PROJECT_DIR/data
+    chmod 755 $PROJECT_DIR/data
+    chown -R root:root $PROJECT_DIR/data
+    
+    # 确保后端目录有正确的权限
+    chmod -R 755 $PROJECT_DIR/backend
+    chown -R root:root $PROJECT_DIR/backend
     
     log_success "环境变量配置完成"
 }
@@ -591,6 +601,7 @@ Restart=always
 RestartSec=10
 Environment=NODE_ENV=production
 Environment=PORT=5000
+Environment=DATABASE_PATH=$PROJECT_DIR/data/database.sqlite
 Environment=ALINUX3_OPTIMIZED=true
 Environment=PATH=/usr/local/bin:/usr/bin:/bin
 StandardOutput=journal
@@ -831,6 +842,37 @@ diagnose_services() {
         ls -la "$PROJECT_DIR/frontend/dist/"
     else
         log_error "前端构建文件不存在，请检查构建过程"
+    fi
+    
+    # 检查数据库目录和权限
+    log_info "=== 数据库检查 ==="
+    if [[ -d "$PROJECT_DIR/data" ]]; then
+        log_success "数据库目录存在"
+        ls -la "$PROJECT_DIR/data/"
+        
+        # 检查数据库文件
+        if [[ -f "$PROJECT_DIR/data/database.sqlite" ]]; then
+            log_success "数据库文件存在"
+            ls -la "$PROJECT_DIR/data/database.sqlite"
+        else
+            log_warning "数据库文件不存在，将在首次启动时创建"
+        fi
+        
+        # 检查目录权限
+        if [[ -w "$PROJECT_DIR/data" ]]; then
+            log_success "数据库目录有写入权限"
+        else
+            log_error "数据库目录没有写入权限"
+            log_info "尝试修复权限..."
+            chmod 755 "$PROJECT_DIR/data"
+            chown -R root:root "$PROJECT_DIR/data"
+        fi
+    else
+        log_error "数据库目录不存在"
+        log_info "创建数据库目录..."
+        mkdir -p "$PROJECT_DIR/data"
+        chmod 755 "$PROJECT_DIR/data"
+        chown -R root:root "$PROJECT_DIR/data"
     fi
 }
 

@@ -6,7 +6,8 @@ import path from 'path'
 dotenv.config()
 
 // SQLite数据库文件路径
-const dbPath = path.join(process.cwd(), 'data', 'database.sqlite')
+// 优先使用环境变量指定的路径，否则使用项目目录下的data文件夹
+const dbPath = process.env.DATABASE_PATH || path.join(process.cwd(), 'data', 'database.sqlite')
 
 // 数据库实例
 let db: Database<sqlite3.Database, sqlite3.Statement> | null = null
@@ -25,15 +26,30 @@ export const getDatabase = async (): Promise<Database<sqlite3.Database, sqlite3.
 // 连接数据库
 export const connectDatabase = async (): Promise<void> => {
   try {
-    const database = await getDatabase()
-    console.log('✅ SQLite数据库连接成功')
-
     // 创建数据目录（如果不存在）
     const fs = await import('fs')
     const dataDir = path.dirname(dbPath)
+    
+    console.log(`📁 数据库路径: ${dbPath}`)
+    console.log(`📁 数据目录: ${dataDir}`)
+    
+    // 确保数据目录存在
     if (!fs.existsSync(dataDir)) {
-      fs.mkdirSync(dataDir, { recursive: true })
+      console.log(`📁 创建数据目录: ${dataDir}`)
+      fs.mkdirSync(dataDir, { recursive: true, mode: 0o755 })
     }
+    
+    // 检查目录权限
+    try {
+      fs.accessSync(dataDir, fs.constants.W_OK)
+      console.log('✅ 数据目录写入权限检查通过')
+    } catch (permError) {
+      console.error('❌ 数据目录没有写入权限:', permError)
+      throw new Error(`数据目录没有写入权限: ${dataDir}`)
+    }
+
+    const database = await getDatabase()
+    console.log('✅ SQLite数据库连接成功')
 
     // 创建表
     await createTables(database)
@@ -41,6 +57,7 @@ export const connectDatabase = async (): Promise<void> => {
     console.log('✅ 数据库初始化完成')
   } catch (error) {
     console.error('❌ 数据库连接失败:', error)
+    console.error('❌ 错误详情:', error.message)
     throw error
   }
 }
