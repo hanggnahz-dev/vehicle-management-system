@@ -3,7 +3,7 @@
     <el-card class="welcome-card">
       <template #header>
         <div class="card-header">
-          <span>欢迎使用 Vue3 全栈应用</span>
+          <span>欢迎使用慧安行车辆管理系统</span>
         </div>
       </template>
       <div class="welcome-content">

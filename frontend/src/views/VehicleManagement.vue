@@ -74,15 +74,15 @@
         @sort-change="handleSortChange"
       >
         <el-table-column type="selection" width="55" />
-        <el-table-column prop="id" label="ID" width="80" sortable="custom" />
-        <el-table-column prop="company_name" label="公司名称" width="180" sortable="custom" />
-        <el-table-column prop="license_plate" label="车牌号码" width="120" sortable="custom" />
-        <el-table-column prop="inspection_date" label="审证日期" width="120" sortable="custom">
+        <el-table-column prop="id" label="ID" min-width="80" sortable="custom" />
+        <el-table-column prop="company_name" label="公司名称" min-width="150" sortable="custom" />
+        <el-table-column prop="license_plate" label="车牌号码" min-width="120" sortable="custom" />
+        <el-table-column prop="inspection_date" label="审证日期" min-width="120" sortable="custom">
           <template #default="scope">
             {{ formatDate(scope.row.inspection_date) }}
           </template>
         </el-table-column>
-        <el-table-column label="车辆状态" width="120" sortable="custom" prop="status">
+        <el-table-column label="车辆状态" min-width="120" sortable="custom" prop="status">
           <template #default="scope">
             <el-tag :type="getVehicleStatus(scope.row.inspection_date).type">
               {{ getVehicleStatus(scope.row.inspection_date).text }}

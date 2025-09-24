@@ -150,7 +150,8 @@ const handleCommand = async (command: string) => {
 }
 
 .user-dropdown .el-icon {
-  margin: 0 4px;
+  font-size: 18px;
+  margin: 0 6px;
 }
 
 .user-name {
@@ -246,6 +247,11 @@ const handleCommand = async (command: string) => {
 
   .user-name {
     display: none;
+  }
+  
+  .user-dropdown .el-icon {
+    font-size: 20px;
+    margin: 0 4px;
   }
 
   .user-info {
