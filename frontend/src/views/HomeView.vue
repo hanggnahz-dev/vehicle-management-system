@@ -20,18 +20,10 @@
             <el-statistic title="正常车辆" :value="normalCount" />
           </el-col>
           <el-col :xs="24" :sm="12" :md="8" :lg="8" :xl="8">
-            <el-statistic title="即将到期" :value="expiringCount">
-              <template #suffix>
-                <el-tag type="warning" size="small">即将到期</el-tag>
-              </template>
-            </el-statistic>
+            <el-statistic title="即将到期" :value="expiringCount" />
           </el-col>
           <el-col :xs="24" :sm="12" :md="8" :lg="8" :xl="8">
-            <el-statistic title="已过期" :value="expiredCount">
-              <template #suffix>
-                <el-tag type="danger" size="small">已过期</el-tag>
-              </template>
-            </el-statistic>
+            <el-statistic title="已过期" :value="expiredCount" />
           </el-col>
         </el-row>
         <el-divider />
