@@ -1417,6 +1417,15 @@ main() {
     # 显示部署信息
     show_deployment_info
     
+    # 运行404诊断
+    log_info "运行404页面诊断..."
+    if [[ -f "$PROJECT_DIR/diagnose-404.sh" ]]; then
+        chmod +x "$PROJECT_DIR/diagnose-404.sh"
+        "$PROJECT_DIR/diagnose-404.sh"
+    else
+        log_warning "诊断脚本不存在，跳过诊断"
+    fi
+    
     log_success "Alibaba Cloud Linux 3 部署完成！"
 }
 
