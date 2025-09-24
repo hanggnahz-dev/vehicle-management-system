@@ -171,7 +171,7 @@ const fetchData = async () => {
     let expiring = 0
     let expired = 0
 
-    allVehiclesData.vehicles.forEach(vehicle => {
+    allVehiclesData.vehicles.forEach((vehicle: any) => {
       const status = getVehicleStatus(vehicle.inspection_date)
       if (status === 'normal') {
         normal++
