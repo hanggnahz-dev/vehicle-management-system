@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>调试页面</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .result { margin: 10px 0; padding: 10px; border: 1px solid #ccc; }
+        .error { color: red; }
+        .success { color: green; }
+    </style>
+</head>
+<body>
+    <h1>API调试页面</h1>
+    
+    <button onclick="testCompaniesAPI()">测试公司列表API</button>
+    <button onclick="testVehiclesAPI()">测试车辆列表API</button>
+    <button onclick="testRolesAPI()">测试角色列表API</button>
+    
+    <div id="result"></div>
+
+    <script>
+        async function testCompaniesAPI() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '<div class="result">正在测试公司列表API...</div>';
+            
+            try {
+                const response = await fetch('/api/vehicles/meta/companies');
+                const data = await response.json();
+                
+                if (data.success) {
+                    resultDiv.innerHTML = `
+                        <div class="result success">
+                            <h3>公司列表API测试成功</h3>
+                            <p>返回数据：</p>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                            <p>公司数量：${data.data.length}</p>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `<div class="result error">API返回错误：${data.message}</div>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="result error">请求失败：${error.message}</div>`;
+            }
+        }
+
+        async function testVehiclesAPI() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '<div class="result">正在测试车辆列表API...</div>';
+            
+            try {
+                const response = await fetch('/api/vehicles');
+                const data = await response.json();
+                
+                if (data.success) {
+                    resultDiv.innerHTML = `
+                        <div class="result success">
+                            <h3>车辆列表API测试成功</h3>
+                            <p>返回数据：</p>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                            <p>车辆数量：${data.data.length}</p>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `<div class="result error">API返回错误：${data.message}</div>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="result error">请求失败：${error.message}</div>`;
+            }
+        }
+
+        async function testRolesAPI() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '<div class="result">正在测试角色列表API...</div>';
+            
+            try {
+                const response = await fetch('/api/roles');
+                const data = await response.json();
+                
+                if (data.success) {
+                    resultDiv.innerHTML = `
+                        <div class="result success">
+                            <h3>角色列表API测试成功</h3>
+                            <p>返回数据：</p>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                            <p>角色数量：${data.data.length}</p>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `<div class="result error">API返回错误：${data.message}</div>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="result error">请求失败：${error.message}</div>`;
+            }
+        }
+    </script>
+</body>
+</html>
