@@ -7,12 +7,14 @@
 ## Alibaba Cloud Linux 3 特性
 
 ### 系统特性
+
 - **基于 CentOS 8** - 继承 CentOS 8 的稳定性和兼容性
 - **阿里云优化** - 针对阿里云 ECS 实例进行深度优化
 - **长期支持** - 提供长期安全更新和技术支持
 - **云原生** - 专为云计算环境设计
 
 ### 技术优势
+
 - **性能优化** - 针对阿里云硬件进行性能调优
 - **安全增强** - 内置安全防护和漏洞修复
 - **云集成** - 深度集成阿里云服务
@@ -23,6 +25,7 @@
 ### 1. 阿里云资源准备
 
 #### ECS 实例要求
+
 - **操作系统**: Alibaba Cloud Linux 3.0+
 - **CPU**: 1 核以上
 - **内存**: 2GB 以上
@@ -30,6 +33,7 @@
 - **网络**: 公网 IP 或弹性公网 IP
 
 #### 推荐实例规格
+
 - **开发环境**: ecs.t6-c1m1.large (1 核 2GB)
 - **生产环境**: ecs.c6.large (2 核 4GB)
 - **高并发**: ecs.c6.xlarge (4 核 8GB)
@@ -69,12 +73,14 @@ chmod +x deploy-aliyun.sh
 ## 部署流程
 
 ### 1. 系统检测和优化
+
 - 自动检测 Alibaba Cloud Linux 3 系统
 - 配置阿里云镜像源加速
 - 安装阿里云优化工具
 - 优化系统内核参数
 
 ### 2. 依赖安装
+
 - 安装 EPEL 仓库
 - 安装基础开发工具
 - 安装 Python 开发环境
@@ -82,29 +88,34 @@ chmod +x deploy-aliyun.sh
 - 安装阿里云 CLI 工具
 
 ### 3. 运行时环境
+
 - 安装 Node.js 20.x（通过 NodeSource RPM 仓库）
 - 安装 Docker 和 Docker Compose
 - 配置 Docker 镜像加速器
 - 安装 PM2 进程管理器
 
 ### 4. 项目部署
+
 - 部署项目文件
 - 安装项目依赖
 - 构建前端项目
 - 配置环境变量
 
 ### 5. 服务配置
+
 - 创建 systemd 服务文件
 - 配置 Nginx 反向代理
 - 申请 SSL 证书
 - 配置防火墙规则
 
 ### 6. 阿里云集成
+
 - 配置阿里云 CLI
 - 配置安全组规则
 - 设置监控和告警
 
 ### 7. 系统优化
+
 - 内核参数优化
 - 文件描述符优化
 - Nginx 性能优化
@@ -115,6 +126,7 @@ chmod +x deploy-aliyun.sh
 ### 1. 阿里云镜像源配置
 
 #### 自动配置阿里云镜像源
+
 ```bash
 # 备份原有配置
 mv /etc/yum.repos.d/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo.backup
@@ -133,6 +145,7 @@ EOF
 ### 2. Docker 镜像加速器
 
 #### 配置阿里云 Docker 镜像加速器
+
 ```bash
 # 创建 Docker 配置文件
 mkdir -p /etc/docker
@@ -158,6 +171,7 @@ systemctl restart docker
 ### 3. 系统优化配置
 
 #### 内核参数优化
+
 ```bash
 # 添加内核参数优化
 cat >> /etc/sysctl.conf << 'EOF'
@@ -182,6 +196,7 @@ sysctl -p
 ```
 
 #### 文件描述符优化
+
 ```bash
 # 配置文件描述符限制
 cat >> /etc/security/limits.conf << 'EOF'
@@ -196,6 +211,7 @@ EOF
 ### 4. Nginx 性能优化
 
 #### 编辑 /etc/nginx/nginx.conf
+
 ```nginx
 # Alibaba Cloud Linux 3 Nginx 优化
 worker_processes auto;
@@ -220,6 +236,7 @@ open_file_cache_errors on;
 ### 1. systemd 服务
 
 #### 查看服务状态
+
 ```bash
 systemctl status vehicle-backend
 systemctl status vehicle-frontend
@@ -229,6 +246,7 @@ systemctl status docker
 ```
 
 #### 启动/停止/重启服务
+
 ```bash
 # 启动服务
 systemctl start vehicle-backend
@@ -248,6 +266,7 @@ systemctl enable vehicle-frontend
 ```
 
 #### 查看服务日志
+
 ```bash
 journalctl -u vehicle-backend -f
 journalctl -u vehicle-frontend -f
@@ -257,12 +276,14 @@ journalctl -u nginx -f
 ### 2. 防火墙管理
 
 #### 查看防火墙状态
+
 ```bash
 firewall-cmd --state
 firewall-cmd --list-all
 ```
 
 #### 添加/删除规则
+
 ```bash
 # 添加端口
 firewall-cmd --permanent --add-port=8080/tcp
@@ -277,6 +298,7 @@ firewall-cmd --reload
 ### 3. Docker 管理
 
 #### 查看 Docker 状态
+
 ```bash
 systemctl status docker
 docker --version
@@ -284,6 +306,7 @@ docker-compose --version
 ```
 
 #### 查看 Docker 镜像
+
 ```bash
 docker images
 docker ps -a
@@ -294,6 +317,7 @@ docker ps -a
 ### 1. 包管理器问题
 
 #### dnf 错误
+
 ```bash
 # 清理 dnf 缓存
 dnf clean all
@@ -304,6 +328,7 @@ dnf repolist
 ```
 
 #### 镜像源问题
+
 ```bash
 # 检查镜像源配置
 cat /etc/yum.repos.d/aliyun.repo
@@ -315,6 +340,7 @@ curl -I https://mirrors.aliyun.com/alinux/3/os/x86_64/
 ### 2. Docker 问题
 
 #### Docker 无法启动
+
 ```bash
 # 检查 Docker 状态
 systemctl status docker
@@ -329,6 +355,7 @@ sh get-docker.sh
 ```
 
 #### 镜像拉取失败
+
 ```bash
 # 检查镜像加速器配置
 cat /etc/docker/daemon.json
@@ -343,6 +370,7 @@ docker pull hello-world
 ### 3. 网络问题
 
 #### 防火墙问题
+
 ```bash
 # 检查防火墙状态
 firewall-cmd --state
@@ -355,6 +383,7 @@ firewall-cmd --list-all --permanent
 ```
 
 #### 端口占用
+
 ```bash
 # 查看端口占用
 netstat -tlnp | grep :80
@@ -369,6 +398,7 @@ kill -9 <PID>
 ### 4. 性能问题
 
 #### 系统资源监控
+
 ```bash
 # 查看系统资源使用
 htop
@@ -381,6 +411,7 @@ ss -tuln
 ```
 
 #### 应用性能监控
+
 ```bash
 # 查看 Node.js 进程
 ps aux | grep node
@@ -398,6 +429,7 @@ tail -f /var/log/nginx/access.log
 ### 1. 系统级优化
 
 #### 内核参数调优
+
 ```bash
 # 查看当前内核参数
 sysctl -a | grep net.core
@@ -408,6 +440,7 @@ sysctl -p
 ```
 
 #### 文件系统优化
+
 ```bash
 # 查看文件系统信息
 df -T
@@ -420,6 +453,7 @@ mount | grep ext4
 ### 2. 应用级优化
 
 #### Node.js 优化
+
 ```bash
 # 设置 Node.js 环境变量
 export NODE_ENV=production
@@ -430,6 +464,7 @@ pm2 start ecosystem.config.js -i max
 ```
 
 #### Nginx 优化
+
 ```bash
 # 启用 Nginx 缓存
 location ~* \.(jpg|jpeg|png|gif|ico|css|js)$ {
@@ -444,6 +479,7 @@ listen 443 ssl http2;
 ### 3. 数据库优化
 
 #### SQLite 优化
+
 ```bash
 # 设置 SQLite 优化参数
 PRAGMA journal_mode=WAL;
@@ -457,6 +493,7 @@ PRAGMA temp_store=MEMORY;
 ### 1. 系统安全
 
 #### 更新系统
+
 ```bash
 # 更新系统包
 dnf update -y
@@ -466,6 +503,7 @@ dnf update --security -y
 ```
 
 #### 配置 SSH
+
 ```bash
 # 编辑 SSH 配置
 vim /etc/ssh/sshd_config
@@ -483,6 +521,7 @@ systemctl restart sshd
 ### 2. 应用安全
 
 #### 配置防火墙
+
 ```bash
 # 只允许必要的端口
 firewall-cmd --permanent --remove-service=ssh
@@ -491,6 +530,7 @@ firewall-cmd --reload
 ```
 
 #### 配置 SSL
+
 ```bash
 # 强制 HTTPS 重定向
 server {
@@ -505,6 +545,7 @@ server {
 ### 1. 系统监控
 
 #### 安装监控工具
+
 ```bash
 # 安装系统监控工具
 dnf install -y htop iotop nethogs
@@ -517,6 +558,7 @@ cd cms_go_agent-1.0.0-linux-amd64
 ```
 
 #### 配置监控告警
+
 ```bash
 # 创建监控脚本
 cat > /opt/monitor.sh << 'EOF'
@@ -540,6 +582,7 @@ echo "*/5 * * * * /opt/monitor.sh" | crontab -
 ### 2. 日志管理
 
 #### 配置日志轮转
+
 ```bash
 # 创建日志轮转配置
 cat > /etc/logrotate.d/vehicle-management << 'EOF'
@@ -561,6 +604,7 @@ EOF
 ### 3. 备份策略
 
 #### 数据库备份
+
 ```bash
 # 创建备份脚本
 cat > /opt/backup-db.sh << 'EOF'
@@ -601,6 +645,7 @@ Alibaba Cloud Linux 3 部署脚本为车辆管理系统提供了完整的云原�
 ## 支持
 
 如遇到问题，请检查：
+
 1. 阿里云控制台：检查实例和安全组状态
 2. 系统日志：`journalctl -u vehicle-backend -f`
 3. 服务状态：`systemctl status vehicle-backend`
