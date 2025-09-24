@@ -67,7 +67,7 @@ export class VehicleModel {
   ): Promise<{ vehicles: VehicleResponse[]; total: number }> {
     const db = await getDatabase()
 
-    // 构建基础查询条件
+    // 构建查询条件
     let whereClause = 'WHERE 1=1'
     const params: any[] = []
 
@@ -81,39 +81,43 @@ export class VehicleModel {
         whereClause += ' AND license_plate LIKE ?'
         params.push(`%${filter.license_plate}%`)
       }
+
+      // 状态筛选：直接在SQL中计算
+      if (filter.status) {
+        console.log('状态筛选条件:', filter.status)
+        if (filter.status === 'normal') {
+          // 正常：审证日期距离今天超过7天
+          whereClause += ' AND (julianday(inspection_date) - julianday("now")) > 7'
+        } else if (filter.status === 'expiring') {
+          // 即将到期：审证日期距离今天0-7天
+          whereClause += ' AND (julianday(inspection_date) - julianday("now")) >= 0 AND (julianday(inspection_date) - julianday("now")) <= 7'
+        } else if (filter.status === 'expired') {
+          // 已过期：审证日期距离今天小于0天
+          whereClause += ' AND (julianday(inspection_date) - julianday("now")) < 0'
+        }
+      }
     }
 
-    // 获取所有符合基础条件的车辆
-    const allQuery = `
+    // 获取总数
+    const countQuery = `SELECT COUNT(*) as total FROM vehicles ${whereClause}`
+    const countResult = (await db.get(countQuery, params)) as { total: number }
+    const total = countResult.total
+
+    // 计算偏移量
+    const offset = (page - 1) * pageSize
+
+    // 获取分页数据
+    const dataQuery = `
       SELECT id, company_name, license_plate, inspection_date, created_at, updated_at 
       FROM vehicles 
       ${whereClause}
       ORDER BY created_at DESC
+      LIMIT ? OFFSET ?
     `
-    const allRows = (await db.all(allQuery, params)) as Vehicle[]
+    const dataParams = [...params, pageSize, offset]
+    const rows = (await db.all(dataQuery, dataParams)) as Vehicle[]
 
-    // 如果有状态筛选，进行前端筛选
-    let filteredVehicles = allRows
-    if (filter?.status) {
-      console.log('状态筛选条件:', filter.status)
-      console.log('筛选前车辆数量:', allRows.length)
-      filteredVehicles = allRows.filter(vehicle => {
-        const status = this.getVehicleStatus(vehicle.inspection_date)
-        const matches = status === filter.status
-        console.log(`车辆 ${vehicle.license_plate} (${vehicle.inspection_date}) -> 状态: ${status}, 匹配: ${matches}`)
-        return matches
-      })
-      console.log('筛选后车辆数量:', filteredVehicles.length)
-    }
-
-    // 计算总数
-    const total = filteredVehicles.length
-
-    // 计算分页
-    const offset = (page - 1) * pageSize
-    const paginatedVehicles = filteredVehicles.slice(offset, offset + pageSize)
-
-    const vehicles = paginatedVehicles.map(vehicle => ({
+    const vehicles = rows.map(vehicle => ({
       id: vehicle.id,
       company_name: vehicle.company_name,
       license_plate: vehicle.license_plate,
@@ -233,7 +237,9 @@ export class VehicleModel {
         if (existingVehicle) {
           // 存在则更新
           const updatedVehicle = await this.update(existingVehicle.id, vehicleData)
-          updated.push(updatedVehicle)
+          if (updatedVehicle) {
+            updated.push(updatedVehicle)
+          }
         } else {
           // 不存在则插入
           const newVehicle = await this.create(vehicleData)
