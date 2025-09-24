@@ -45,6 +45,7 @@ export function parseExcelFile(file: File): Promise<ParseResult> {
           'company',
         ])
         const licensePlateIndex = findColumnIndex(headers, [
+          '车牌号码',
           '车牌号',
           '车牌',
           'license_plate',
@@ -61,7 +62,7 @@ export function parseExcelFile(file: File): Promise<ParseResult> {
           errors.push('未找到"公司名称"列')
         }
         if (licensePlateIndex === -1) {
-          errors.push('未找到"车牌号"列')
+          errors.push('未找到"车牌号码"列')
         }
         if (inspectionDateIndex === -1) {
           errors.push('未找到"审证日期"列')
@@ -157,15 +158,31 @@ export function parseCSVFile(file: File): Promise<ParseResult> {
 
           // 查找必需的列
           const headers = Object.keys(data[0])
-          const companyNameKey = '公司名称'
-          const licensePlateKey = '车牌号'
-          const inspectionDateKey = '审证日期'
+          const companyNameKey = findColumnKey(headers, [
+            '公司名称',
+            '公司',
+            'company_name',
+            'company',
+          ])
+          const licensePlateKey = findColumnKey(headers, [
+            '车牌号码',
+            '车牌号',
+            '车牌',
+            'license_plate',
+            'license',
+          ])
+          const inspectionDateKey = findColumnKey(headers, [
+            '审证日期',
+            '审证',
+            'inspection_date',
+            'inspection',
+          ])
 
           if (!companyNameKey) {
             errors.push('未找到"公司名称"列')
           }
           if (!licensePlateKey) {
-            errors.push('未找到"车牌号"列')
+            errors.push('未找到"车牌号码"列')
           }
           if (!inspectionDateKey) {
             errors.push('未找到"审证日期"列')
@@ -183,9 +200,9 @@ export function parseCSVFile(file: File): Promise<ParseResult> {
             const rowNumber = index + 2 // 实际行号（包含标题行）
 
             try {
-              const companyName = String(row[companyNameKey] || '').trim()
-              const licensePlate = String(row[licensePlateKey] || '').trim()
-              const inspectionDate = String(row[inspectionDateKey] || '').trim()
+              const companyName = String(row[companyNameKey!] || '').trim()
+              const licensePlate = String(row[licensePlateKey!] || '').trim()
+              const inspectionDate = String(row[inspectionDateKey!] || '').trim()
 
               if (!companyName) {
                 errors.push(`第${rowNumber}行：公司名称不能为空`)
