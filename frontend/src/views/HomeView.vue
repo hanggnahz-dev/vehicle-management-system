@@ -37,7 +37,7 @@
           <span>各公司车辆统计</span>
         </div>
       </template>
-      <el-table :data="companyVehicleData" style="width: 100%" v-loading="loading">
+      <el-table :data="paginatedCompanyData" style="width: 100%" v-loading="loading">
         <el-table-column prop="company_name" label="公司名称" min-width="200" />
         <el-table-column prop="vehicle_count" label="车辆数量" min-width="120">
           <template #default="scope">
@@ -69,6 +69,19 @@
           </template>
         </el-table-column>
       </el-table>
+      
+      <!-- 分页组件 -->
+      <div class="pagination-container" v-if="total > 0">
+        <el-pagination
+          v-model:current-page="currentPage"
+          v-model:page-size="pageSize"
+          :page-sizes="[5, 10, 20, 50]"
+          :total="total"
+          layout="total, sizes, prev, pager, next, jumper"
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+        />
+      </div>
     </el-card>
   </div>
 </template>
@@ -87,6 +100,20 @@ const expiringCount = ref(0)
 const expiredCount = ref(0)
 const loading = ref(false)
 const companyVehicleData = ref<
+  Array<{
+    company_name: string
+    vehicle_count: number
+    normal_count: number
+    expiring_count: number
+    expired_count: number
+  }>
+>([])
+
+// 分页相关状态
+const currentPage = ref(1)
+const pageSize = ref(10)
+const total = ref(0)
+const paginatedCompanyData = ref<
   Array<{
     company_name: string
     vehicle_count: number
@@ -151,6 +178,26 @@ const calculateCompanyStats = (vehicles: any[]) => {
   }))
 }
 
+// 分页处理函数
+const updatePaginatedData = () => {
+  const start = (currentPage.value - 1) * pageSize.value
+  const end = start + pageSize.value
+  paginatedCompanyData.value = companyVehicleData.value.slice(start, end)
+  total.value = companyVehicleData.value.length
+}
+
+// 分页事件处理
+const handleSizeChange = (val: number) => {
+  pageSize.value = val
+  currentPage.value = 1
+  updatePaginatedData()
+}
+
+const handleCurrentChange = (val: number) => {
+  currentPage.value = val
+  updatePaginatedData()
+}
+
 const fetchData = async () => {
   try {
     loading.value = true
@@ -165,6 +212,9 @@ const fetchData = async () => {
 
     // 计算各公司车辆统计
     companyVehicleData.value = calculateCompanyStats(allVehiclesData.vehicles)
+    
+    // 更新分页数据
+    updatePaginatedData()
 
     // 计算车辆状态统计
     let normal = 0
@@ -260,6 +310,43 @@ onMounted(() => {
     flex-direction: column;
     align-items: flex-start;
     gap: 10px;
+  }
+}
+
+/* 分页组件样式 */
+.pagination-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+  padding: 10px 0;
+}
+
+@media (max-width: 768px) {
+  .pagination-container {
+    margin-top: 15px;
+    padding: 8px 0;
+  }
+  
+  .pagination-container .el-pagination {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .pagination-container {
+    margin-top: 10px;
+    padding: 5px 0;
+  }
+  
+  .pagination-container .el-pagination {
+    font-size: 12px;
+  }
+  
+  .pagination-container .el-pagination .el-pager li {
+    min-width: 24px;
+    height: 24px;
+    line-height: 24px;
   }
 }
 </style>
