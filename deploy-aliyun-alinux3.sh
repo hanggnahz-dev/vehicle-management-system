@@ -623,17 +623,18 @@ server {
     listen 80;
     server_name $DOMAIN_NAME;
     
+    # 静态文件缓存
+    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
+        root /opt/vehicle-management/frontend/dist;
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+    }
+    
     # 前端静态文件
     location / {
         root /opt/vehicle-management/frontend/dist;
         try_files \$uri \$uri/ /index.html;
         index index.html;
-        
-        # 静态文件缓存
-        location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
-            expires 1y;
-            add_header Cache-Control "public, immutable";
-        }
     }
     
     # 后端API
@@ -662,17 +663,18 @@ server {
     listen 80;
     server_name _;
     
+    # 静态文件缓存
+    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
+        root /opt/vehicle-management/frontend/dist;
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+    }
+    
     # 前端静态文件
     location / {
         root /opt/vehicle-management/frontend/dist;
         try_files \$uri \$uri/ /index.html;
         index index.html;
-        
-        # 静态文件缓存
-        location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
-            expires 1y;
-            add_header Cache-Control "public, immutable";
-        }
     }
     
     # 后端API
@@ -1156,7 +1158,7 @@ EOF
 # Alibaba Cloud Linux 3 优化的 Nginx 配置
 user nginx;
 worker_processes auto;
-error_log /var/log/nginx/error.log;
+error_log /var/log/nginx/error.log warn;
 pid /run/nginx.pid;
 
 events {
@@ -1177,6 +1179,7 @@ http {
     tcp_nodelay on;
     keepalive_timeout 65;
     types_hash_max_size 2048;
+    server_tokens off;
 
     include /etc/nginx/mime.types;
     default_type application/octet-stream;
@@ -1203,6 +1206,11 @@ http {
     open_file_cache_min_uses 2;
     open_file_cache_errors on;
 
+    # 客户端配置
+    client_max_body_size 10M;
+    client_body_timeout 60s;
+    client_header_timeout 60s;
+
     # 包含站点配置
     include /etc/nginx/conf.d/*.conf;
 }
@@ -1220,7 +1228,40 @@ EOF
         log_error "Nginx配置测试失败"
         log_info "Nginx配置错误信息："
         nginx -t 2>&1
-        return 1
+        
+        # 尝试使用简化的配置
+        log_warning "尝试使用简化的Nginx配置..."
+        tee /etc/nginx/nginx.conf > /dev/null << 'EOF'
+user nginx;
+worker_processes auto;
+error_log /var/log/nginx/error.log;
+pid /run/nginx.pid;
+
+events {
+    worker_connections 1024;
+}
+
+http {
+    include /etc/nginx/mime.types;
+    default_type application/octet-stream;
+    
+    sendfile on;
+    keepalive_timeout 65;
+    
+    include /etc/nginx/conf.d/*.conf;
+}
+EOF
+        
+        # 再次测试配置
+        if nginx -t; then
+            log_success "简化Nginx配置测试通过"
+            systemctl reload nginx
+            log_success "简化Nginx配置重新加载成功"
+        else
+            log_error "简化Nginx配置仍然失败"
+            nginx -t 2>&1
+            return 1
+        fi
     fi
     
     log_success "Alibaba Cloud Linux 3优化配置完成"
