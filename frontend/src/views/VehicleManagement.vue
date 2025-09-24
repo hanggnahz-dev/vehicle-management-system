@@ -376,11 +376,9 @@ const handleCompanyClear = async () => {
 }
 const handleCompanyInput = (value: string) => {
   console.log('公司输入:', value)
-  // 当用户输入时，可以实时搜索
-  if (value) {
-    currentPage.value = 1
-    loadVehicles()
-  }
+  // 当用户手动输入时，进行实时搜索（但不包括从下拉选择的情况）
+  // 注意：这里不调用loadVehicles()，因为选择时会通过@select事件处理
+  // 只有用户手动输入时才需要实时搜索
 }
 const handleCompanyFocus = () => {
   console.log('公司名称获得焦点，显示所有公司列表')
