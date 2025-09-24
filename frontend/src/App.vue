@@ -153,7 +153,7 @@ const handleCommand = async (command: string) => {
 }
 
 .user-dropdown .el-icon {
-  font-size: 18px;
+  font-size: 22px;
   margin: 0 6px;
 }
 
@@ -253,7 +253,7 @@ const handleCommand = async (command: string) => {
   }
 
   .user-dropdown .el-icon {
-    font-size: 20px;
+    font-size: 24px;
     margin: 0 4px;
   }
 
