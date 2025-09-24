@@ -32,10 +32,10 @@
           />
         </el-form-item>
 
-        <el-form-item label="车牌号">
+        <el-form-item label="车牌号码">
           <el-input
             v-model="searchForm.license_plate"
-            placeholder="请输入车牌号进行查询"
+            placeholder="请输入车牌号码进行查询"
             clearable
             :style="isMobile ? 'width: 100%' : 'width: 200px'"
             @input="handleLicensePlateInput"
@@ -43,7 +43,7 @@
           />
         </el-form-item>
 
-        <el-form-item label="状态">
+        <el-form-item label="车辆状态">
           <el-select
             v-model="searchForm.status"
             placeholder="请选择状态"
@@ -81,13 +81,13 @@
         <el-table-column type="selection" width="55" />
         <el-table-column prop="id" label="ID" width="80" sortable="custom" />
         <el-table-column prop="company_name" label="公司名称" min-width="150" sortable="custom" />
-        <el-table-column prop="license_plate" label="车牌号" width="120" sortable="custom" />
+        <el-table-column prop="license_plate" label="车牌号码" width="120" sortable="custom" />
         <el-table-column prop="inspection_date" label="审证日期" width="120" sortable="custom">
           <template #default="scope">
             {{ formatDate(scope.row.inspection_date) }}
           </template>
         </el-table-column>
-        <el-table-column label="状态" width="100" sortable="custom" prop="status">
+        <el-table-column label="车辆状态" width="100" sortable="custom" prop="status">
           <template #default="scope">
             <el-tag :type="getVehicleStatus(scope.row.inspection_date).type">
               {{ getVehicleStatus(scope.row.inspection_date).text }}
@@ -138,10 +138,10 @@
             @input="handleCompanyInput"
           />
         </el-form-item>
-        <el-form-item label="车牌号" prop="license_plate">
+        <el-form-item label="车牌号码" prop="license_plate">
           <el-input
             v-model="vehicleForm.license_plate"
-            placeholder="请输入车牌号"
+            placeholder="请输入车牌号码"
             :disabled="editingVehicle"
           />
         </el-form-item>
@@ -193,11 +193,11 @@
           <h4>导入说明：</h4>
           <ul>
             <li>文件格式：Excel (.xlsx, .xls) 或 CSV</li>
-            <li>必需字段：公司名称、车牌号、审证日期</li>
+            <li>必需字段：公司名称、车牌号码、审证日期</li>
             <li>审证日期格式：YYYY-MM-DD</li>
             <li><strong>导入规则：</strong></li>
-            <li style="margin-left: 20px">• 如果车牌号已存在，将更新该车辆信息</li>
-            <li style="margin-left: 20px">• 如果车牌号不存在，将新增该车辆</li>
+            <li style="margin-left: 20px">• 如果车牌号码已存在，将更新该车辆信息</li>
+            <li style="margin-left: 20px">• 如果车牌号码不存在，将新增该车辆</li>
             <li style="margin-left: 20px">• 支持批量导入，自动处理重复数据</li>
           </ul>
         </div>
@@ -322,8 +322,8 @@ const vehicleRules = {
     { min: 2, max: 100, message: '公司名称长度在 2 到 100 个字符', trigger: 'blur' },
   ],
   license_plate: [
-    { required: true, message: '请输入车牌号', trigger: 'blur' },
-    { min: 5, max: 20, message: '车牌号长度在 5 到 20 个字符', trigger: 'blur' },
+    { required: true, message: '请输入车牌号码', trigger: 'blur' },
+    { min: 5, max: 20, message: '车牌号码长度在 5 到 20 个字符', trigger: 'blur' },
   ],
   inspection_date: [{ required: true, message: '请选择审证日期', trigger: 'change' }],
 }
@@ -426,13 +426,13 @@ const handleCompanyFocus = () => {
 // 车牌号输入相关方法
 
 const handleLicensePlateClear = () => {
-  console.log('清空车牌号选择')
+  console.log('清空车牌号码选择')
   currentPage.value = 1
   loadVehicles()
 }
 
 const handleLicensePlateInput = (value: string) => {
-  console.log('车牌号输入:', value)
+  console.log('车牌号码输入:', value)
   // 当用户输入时，直接进行搜索
   currentPage.value = 1
   loadVehicles()
@@ -642,7 +642,7 @@ const handleImport = async () => {
 
     // 显示确认对话框
     const confirmResult = await ElMessageBox.confirm(
-      `文件解析成功，共找到 ${parseResult.data.length} 条数据。\n\n导入规则：\n• 如果车牌号已存在，将更新该车辆信息\n• 如果车牌号不存在，将新增该车辆\n\n是否继续导入？`,
+      `文件解析成功，共找到 ${parseResult.data.length} 条数据。\n\n导入规则：\n• 如果车牌号码已存在，将更新该车辆信息\n• 如果车牌号码不存在，将新增该车辆\n\n是否继续导入？`,
       '确认导入',
       {
         confirmButtonText: '确认导入',
@@ -725,7 +725,7 @@ const getStatusText = (statusValue: string) => {
 
 // 生命周期
 onMounted(() => {
-  // 初始化时只加载公司列表和车牌号列表，不加载车辆列表
+  // 初始化时只加载公司列表和车牌号码列表，不加载车辆列表
   loadMetaData()
 
   // 初始化响应式检测
