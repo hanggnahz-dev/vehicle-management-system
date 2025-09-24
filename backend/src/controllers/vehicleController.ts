@@ -13,16 +13,21 @@ export class VehicleController {
         status: req.query.status as string,
       }
 
+      console.log('控制器接收到的查询参数:', req.query)
+      console.log('初始filter:', filter)
+
       // 分页参数
       const page = parseInt(req.query.page as string) || 1
       const pageSize = parseInt(req.query.pageSize as string) || 20
 
       // 移除空值
       Object.keys(filter).forEach(key => {
-        if (filter[key as keyof VehicleFilter] === undefined) {
+        if (filter[key as keyof VehicleFilter] === undefined || filter[key as keyof VehicleFilter] === '') {
           delete filter[key as keyof VehicleFilter]
         }
       })
+
+      console.log('处理后的filter:', filter)
 
       const result = await VehicleModel.findAllWithPagination(filter, page, pageSize)
       res.json({
