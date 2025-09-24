@@ -17,7 +17,7 @@ export class VehicleController {
       console.log('初始filter:', filter)
       console.log('status参数类型:', typeof filter.status)
       console.log('status参数值:', filter.status)
-      
+
       // 字符编码处理
       if (filter.company_name) {
         try {
@@ -285,10 +285,37 @@ export class VehicleController {
   // 获取车牌号列表
   static async getLicensePlates(req: Request, res: Response): Promise<void> {
     try {
-      const query = req.query.query as string
-      const companyName = req.query.company_name as string
+      let query = req.query.query as string
+      let companyName = req.query.company_name as string
+
+      console.log('车牌号API接收到的查询参数:', req.query)
+      console.log('原始query参数:', query)
+      console.log('原始companyName参数:', companyName)
+
+      // 字符编码处理
+      if (query) {
+        try {
+          // 尝试解码URL编码的中文字符
+          query = decodeURIComponent(query)
+          console.log('解码后的query参数:', query)
+        } catch (error) {
+          console.log('query参数解码失败:', error)
+        }
+      }
+
+      if (companyName) {
+        try {
+          // 尝试解码URL编码的中文字符
+          companyName = decodeURIComponent(companyName)
+          console.log('解码后的companyName参数:', companyName)
+        } catch (error) {
+          console.log('companyName参数解码失败:', error)
+        }
+      }
 
       const licensePlates = await VehicleModel.getLicensePlates(query, companyName)
+      console.log('返回的车牌号数量:', licensePlates.length)
+      
       res.json({
         success: true,
         data: licensePlates,
