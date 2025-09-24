@@ -8,16 +8,25 @@ export class VehicleController {
                 company_name: req.query.company_name,
                 license_plate: req.query.license_plate,
             };
+            // 分页参数
+            const page = parseInt(req.query.page) || 1;
+            const pageSize = parseInt(req.query.pageSize) || 20;
             // 移除空值
             Object.keys(filter).forEach(key => {
                 if (filter[key] === undefined) {
                     delete filter[key];
                 }
             });
-            const vehicles = await VehicleModel.findAll(filter);
+            const result = await VehicleModel.findAllWithPagination(filter, page, pageSize);
             res.json({
                 success: true,
-                data: vehicles,
+                data: result.vehicles,
+                pagination: {
+                    page,
+                    pageSize,
+                    total: result.total,
+                    totalPages: Math.ceil(result.total / pageSize),
+                },
                 message: '获取车辆列表成功',
             });
         }
@@ -226,7 +235,9 @@ export class VehicleController {
     // 获取车牌号列表
     static async getLicensePlates(req, res) {
         try {
-            const licensePlates = await VehicleModel.getLicensePlates();
+            const query = req.query.query;
+            const companyName = req.query.company_name;
+            const licensePlates = await VehicleModel.getLicensePlates(query, companyName);
             res.json({
                 success: true,
                 data: licensePlates,
@@ -262,7 +273,7 @@ export class VehicleController {
             });
         }
     }
-    // 批量导入车辆
+    // 批量导入车辆（存在则更新，不存在则插入）
     static async importVehicles(req, res) {
         try {
             const vehiclesData = req.body;
@@ -285,11 +296,23 @@ export class VehicleController {
                     return;
                 }
             }
-            const results = await VehicleModel.batchCreate(vehiclesData);
+            const results = await VehicleModel.batchUpsert(vehiclesData);
+            const totalProcessed = results.created.length + results.updated.length;
             res.json({
                 success: true,
-                data: results,
-                message: `成功导入${results.length}条车辆数据`,
+                data: {
+                    created: results.created,
+                    updated: results.updated,
+                    errors: results.errors,
+                    summary: {
+                        total: vehiclesData.length,
+                        created: results.created.length,
+                        updated: results.updated.length,
+                        errors: results.errors.length,
+                        success: totalProcessed,
+                    },
+                },
+                message: `导入完成：新增${results.created.length}条，更新${results.updated.length}条，失败${results.errors.length}条`,
             });
         }
         catch (error) {

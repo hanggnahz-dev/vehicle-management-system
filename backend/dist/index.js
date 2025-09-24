@@ -9,6 +9,7 @@ import { errorHandler } from './middleware/errorHandler.js';
 import userRoutes from './routes/userRoutes.js';
 import vehicleRoutes from './routes/vehicleRoutes.js';
 import roleRoutes from './routes/roleRoutes.js';
+import authRoutes from './routes/authRoutes.js';
 // 加载环境变量
 dotenv.config();
 const app = express();
@@ -41,6 +42,7 @@ app.get('/health', (req, res) => {
     });
 });
 // API路由
+app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/vehicles', vehicleRoutes);
 app.use('/api/roles', roleRoutes);

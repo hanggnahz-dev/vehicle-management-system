@@ -29,16 +29,16 @@ export const connectDatabase = async (): Promise<void> => {
     // 创建数据目录（如果不存在）
     const fs = await import('fs')
     const dataDir = path.dirname(dbPath)
-    
+
     console.log(`📁 数据库路径: ${dbPath}`)
     console.log(`📁 数据目录: ${dataDir}`)
-    
+
     // 确保数据目录存在
     if (!fs.existsSync(dataDir)) {
       console.log(`📁 创建数据目录: ${dataDir}`)
       fs.mkdirSync(dataDir, { recursive: true, mode: 0o755 })
     }
-    
+
     // 检查目录权限
     try {
       fs.accessSync(dataDir, fs.constants.W_OK)
@@ -57,7 +57,7 @@ export const connectDatabase = async (): Promise<void> => {
     console.log('✅ 数据库初始化完成')
   } catch (error) {
     console.error('❌ 数据库连接失败:', error)
-    console.error('❌ 错误详情:', error.message)
+    console.error('❌ 错误详情:', error instanceof Error ? error.message : String(error))
     throw error
   }
 }

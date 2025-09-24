@@ -7,5 +7,9 @@ export declare class UserModel {
     static update(id: number, userData: UpdateUserData): Promise<UserResponse | null>;
     static delete(id: number): Promise<boolean>;
     static validatePassword(plainPassword: string, hashedPassword: string): Promise<boolean>;
+    static getUserRoles(userId: number): Promise<string[]>;
+    static findByIdWithRoles(id: number): Promise<(UserResponse & {
+        roles: string[];
+    }) | null>;
 }
 //# sourceMappingURL=User.d.ts.map

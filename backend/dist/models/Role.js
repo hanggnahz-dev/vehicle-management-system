@@ -3,11 +3,11 @@ export class RoleModel {
     // 获取所有角色
     static async findAll() {
         const db = await getDatabase();
-        const rows = await db.all('SELECT id, name, description, created_at, updated_at FROM roles ORDER BY created_at DESC');
+        const rows = (await db.all('SELECT id, name, description, created_at, updated_at FROM roles ORDER BY created_at DESC'));
         return rows.map(role => ({
             id: role.id,
             name: role.name,
-            description: role.description || undefined,
+            description: role.description,
             created_at: role.created_at,
             updated_at: role.updated_at,
         }));
@@ -15,14 +15,14 @@ export class RoleModel {
     // 根据ID获取角色
     static async findById(id) {
         const db = await getDatabase();
-        const role = await db.get('SELECT id, name, description, created_at, updated_at FROM roles WHERE id = ?', [id]);
+        const role = (await db.get('SELECT id, name, description, created_at, updated_at FROM roles WHERE id = ?', [id]));
         if (!role) {
             return null;
         }
         return {
             id: role.id,
             name: role.name,
-            description: role.description || undefined,
+            description: role.description,
             created_at: role.created_at,
             updated_at: role.updated_at,
         };
@@ -30,14 +30,17 @@ export class RoleModel {
     // 根据名称获取角色
     static async findByName(name) {
         const db = await getDatabase();
-        const role = await db.get('SELECT * FROM roles WHERE name = ?', [name]);
+        const role = (await db.get('SELECT * FROM roles WHERE name = ?', [name]));
         return role || null;
     }
     // 创建角色
     static async create(roleData) {
         const { name, description } = roleData;
         const db = await getDatabase();
-        const result = await db.run('INSERT INTO roles (name, description) VALUES (?, ?)', [name, description]);
+        const result = await db.run('INSERT INTO roles (name, description) VALUES (?, ?)', [
+            name,
+            description,
+        ]);
         const newRole = await this.findById(result.lastID);
         if (!newRole) {
             throw new Error('创建角色失败');

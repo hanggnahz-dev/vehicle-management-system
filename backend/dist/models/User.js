@@ -4,7 +4,7 @@ export class UserModel {
     // 获取所有用户
     static async findAll() {
         const db = await getDatabase();
-        const rows = await db.all('SELECT id, name, email, status, created_at, updated_at FROM users ORDER BY created_at DESC');
+        const rows = (await db.all('SELECT id, name, email, status, created_at, updated_at FROM users ORDER BY created_at DESC'));
         return rows.map(user => ({
             id: user.id,
             name: user.name,
@@ -17,7 +17,7 @@ export class UserModel {
     // 根据ID获取用户
     static async findById(id) {
         const db = await getDatabase();
-        const user = await db.get('SELECT id, name, email, status, created_at, updated_at FROM users WHERE id = ?', [id]);
+        const user = (await db.get('SELECT id, name, email, status, created_at, updated_at FROM users WHERE id = ?', [id]));
         if (!user) {
             return null;
         }
@@ -33,7 +33,7 @@ export class UserModel {
     // 根据邮箱获取用户（包含密码）
     static async findByEmail(email) {
         const db = await getDatabase();
-        const user = await db.get('SELECT * FROM users WHERE email = ?', [email]);
+        const user = (await db.get('SELECT * FROM users WHERE email = ?', [email]));
         return user || null;
     }
     // 创建用户
@@ -61,7 +61,7 @@ export class UserModel {
             fields.push('email = ?');
             values.push(userData.email);
         }
-        if (userData.password !== undefined) {
+        if (userData.password !== undefined && userData.password.trim() !== '') {
             fields.push('password = ?');
             values.push(await bcrypt.hash(userData.password, 10));
         }
@@ -86,6 +86,24 @@ export class UserModel {
     // 验证密码
     static async validatePassword(plainPassword, hashedPassword) {
         return await bcrypt.compare(plainPassword, hashedPassword);
+    }
+    // 获取用户角色
+    static async getUserRoles(userId) {
+        const db = await getDatabase();
+        const rows = await db.all(`SELECT r.name 
+       FROM roles r 
+       INNER JOIN user_roles ur ON r.id = ur.role_id 
+       WHERE ur.user_id = ?`, [userId]);
+        return rows.map((row) => row.name);
+    }
+    // 获取用户信息（包含角色）
+    static async findByIdWithRoles(id) {
+        const user = await this.findById(id);
+        if (!user) {
+            return null;
+        }
+        const roles = await this.getUserRoles(id);
+        return { ...user, roles };
     }
 }
 //# sourceMappingURL=User.js.map

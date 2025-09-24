@@ -118,6 +118,21 @@ export const validateRoleData = (data) => {
 export const validateUpdateRoleData = (data) => {
     return updateRoleSchema.validate(data, { abortEarly: false });
 };
+// 登录数据验证模式
+const loginSchema = Joi.object({
+    email: Joi.string().email().required().messages({
+        'string.email': '请输入有效的邮箱地址',
+        'any.required': '邮箱是必填项',
+    }),
+    password: Joi.string().min(6).required().messages({
+        'string.min': '密码至少需要6个字符',
+        'any.required': '密码是必填项',
+    }),
+});
+// 验证登录数据
+export const validateLoginData = (data) => {
+    return loginSchema.validate(data, { abortEarly: false });
+};
 // 验证ID参数
 export const validateId = (id) => {
     const idSchema = Joi.number().integer().positive().required();

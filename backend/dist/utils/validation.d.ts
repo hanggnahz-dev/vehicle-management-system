@@ -5,5 +5,6 @@ export declare const validateVehicleData: (data: any) => Joi.ValidationResult<an
 export declare const validateUpdateVehicleData: (data: any) => Joi.ValidationResult<any>;
 export declare const validateRoleData: (data: any) => Joi.ValidationResult<any>;
 export declare const validateUpdateRoleData: (data: any) => Joi.ValidationResult<any>;
+export declare const validateLoginData: (data: any) => Joi.ValidationResult<any>;
 export declare const validateId: (id: string) => Joi.ValidationResult<number>;
 //# sourceMappingURL=validation.d.ts.map
