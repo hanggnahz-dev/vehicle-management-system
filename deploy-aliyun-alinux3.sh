@@ -804,6 +804,22 @@ configure_aliyun_security_group() {
     if [[ -n "$ALIYUN_ACCESS_KEY" && -n "$ALIYUN_SECRET_KEY" ]]; then
         log_info "配置阿里云安全组..."
         
+        # 询问用户是否要跳过安全组配置
+        read -p "是否跳过自动安全组配置？(y/n，默认n): " SKIP_SECURITY_GROUP
+        SKIP_SECURITY_GROUP=${SKIP_SECURITY_GROUP:-n}
+        
+        if [[ "$SKIP_SECURITY_GROUP" == "y" || "$SKIP_SECURITY_GROUP" == "Y" ]]; then
+            log_info "跳过自动安全组配置"
+            log_info "请手动配置安全组规则："
+            log_info "1. 登录阿里云控制台"
+            log_info "2. 进入ECS实例管理"
+            log_info "3. 找到当前实例的安全组"
+            log_info "4. 添加入方向规则："
+            log_info "   - 协议类型：TCP，端口范围：80/80，授权对象：0.0.0.0/0"
+            log_info "   - 协议类型：TCP，端口范围：443/443，授权对象：0.0.0.0/0"
+            return 0
+        fi
+        
         # 检查阿里云CLI是否已安装
         if ! command -v aliyun &> /dev/null; then
             log_info "安装阿里云CLI..."
@@ -839,9 +855,25 @@ configure_aliyun_security_group() {
         # 获取安全组ID
         log_info "获取实例安全组信息..."
         
+        # 检查阿里云CLI是否可用
+        if ! command -v aliyun &> /dev/null; then
+            log_error "阿里云CLI未安装或不可用"
+            return 1
+        fi
+        
+        # 检查阿里云CLI配置
+        log_info "检查阿里云CLI配置..."
+        if ! aliyun configure list &> /dev/null; then
+            log_error "阿里云CLI未正确配置"
+            return 1
+        fi
+        
         # 尝试不同的参数格式
+        log_info "尝试获取实例信息..."
         INSTANCE_INFO=$(aliyun ecs DescribeInstances --InstanceIds "[\"$INSTANCE_ID\"]" --output json 2>&1)
         ALIYUN_EXIT_CODE=$?
+        
+        log_info "阿里云CLI命令执行结果: 退出码=$ALIYUN_EXIT_CODE"
         
         if [[ $ALIYUN_EXIT_CODE -ne 0 ]]; then
             log_error "阿里云CLI命令执行失败，退出码: $ALIYUN_EXIT_CODE"
@@ -899,7 +931,20 @@ configure_aliyun_security_group() {
                 else
                     log_error "DescribeSecurityGroups API也失败"
                     log_error "错误信息: $SECURITY_GROUPS_INFO"
-                    return 1
+                    
+                    # 提供手动配置指导并继续执行
+                    log_warning "自动安全组配置失败，将跳过此步骤"
+                    log_info "请手动配置安全组规则："
+                    log_info "1. 登录阿里云控制台"
+                    log_info "2. 进入ECS实例管理"
+                    log_info "3. 找到当前实例的安全组"
+                    log_info "4. 添加入方向规则："
+                    log_info "   - 协议类型：TCP，端口范围：80/80，授权对象：0.0.0.0/0"
+                    log_info "   - 协议类型：TCP，端口范围：443/443，授权对象：0.0.0.0/0"
+                    log_info "5. 配置完成后，应用将可以通过HTTP和HTTPS访问"
+                    
+                    # 不返回错误，继续执行后续步骤
+                    return 0
                 fi
             fi
         fi
@@ -937,17 +982,53 @@ configure_aliyun_security_group() {
                 else
                     log_error "无法从实例信息中提取安全组ID"
                     log_error "实例信息: $INSTANCE_INFO"
-                    return 1
+                    
+                    # 提供手动配置指导并继续执行
+                    log_warning "无法自动获取安全组ID，将跳过自动配置"
+                    log_info "请手动配置安全组规则："
+                    log_info "1. 登录阿里云控制台"
+                    log_info "2. 进入ECS实例管理"
+                    log_info "3. 找到当前实例的安全组"
+                    log_info "4. 添加入方向规则："
+                    log_info "   - 协议类型：TCP，端口范围：80/80，授权对象：0.0.0.0/0"
+                    log_info "   - 协议类型：TCP，端口范围：443/443，授权对象：0.0.0.0/0"
+                    
+                    # 不返回错误，继续执行后续步骤
+                    return 0
                 fi
             else
                 log_error "返回的实例信息不是有效的JSON格式"
                 log_error "原始信息: $INSTANCE_INFO"
-                return 1
+                
+                # 提供手动配置指导并继续执行
+                log_warning "API返回数据格式错误，将跳过自动配置"
+                log_info "请手动配置安全组规则："
+                log_info "1. 登录阿里云控制台"
+                log_info "2. 进入ECS实例管理"
+                log_info "3. 找到当前实例的安全组"
+                log_info "4. 添加入方向规则："
+                log_info "   - 协议类型：TCP，端口范围：80/80，授权对象：0.0.0.0/0"
+                log_info "   - 协议类型：TCP，端口范围：443/443，授权对象：0.0.0.0/0"
+                
+                # 不返回错误，继续执行后续步骤
+                return 0
             fi
         else
             log_error "无法获取实例信息或返回错误"
             log_error "错误信息: $INSTANCE_INFO"
-            return 1
+            
+            # 提供手动配置指导并继续执行
+            log_warning "无法获取实例信息，将跳过自动安全组配置"
+            log_info "请手动配置安全组规则："
+            log_info "1. 登录阿里云控制台"
+            log_info "2. 进入ECS实例管理"
+            log_info "3. 找到当前实例的安全组"
+            log_info "4. 添加入方向规则："
+            log_info "   - 协议类型：TCP，端口范围：80/80，授权对象：0.0.0.0/0"
+            log_info "   - 协议类型：TCP，端口范围：443/443，授权对象：0.0.0.0/0"
+            
+            # 不返回错误，继续执行后续步骤
+            return 0
         fi
         
         log_success "阿里云安全组配置完成"
