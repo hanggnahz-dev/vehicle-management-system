@@ -706,6 +706,9 @@ onUnmounted(() => {
 }
 /* 响应式设计 */
 @media (max-width: 768px) {
+  .page-title {
+    display: none;
+  }
   .vehicle-management {
     max-flex: 1;
     margin: 0;
