@@ -625,11 +625,15 @@ server {
     
     # 前端静态文件
     location / {
-        proxy_pass http://localhost:3000;
-        proxy_set_header Host \$host;
-        proxy_set_header X-Real-IP \$remote_addr;
-        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto \$scheme;
+        root /opt/vehicle-management/frontend/dist;
+        try_files \$uri \$uri/ /index.html;
+        index index.html;
+        
+        # 静态文件缓存
+        location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
+            expires 1y;
+            add_header Cache-Control "public, immutable";
+        }
     }
     
     # 后端API
@@ -660,11 +664,15 @@ server {
     
     # 前端静态文件
     location / {
-        proxy_pass http://localhost:3000;
-        proxy_set_header Host \$host;
-        proxy_set_header X-Real-IP \$remote_addr;
-        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto \$scheme;
+        root /opt/vehicle-management/frontend/dist;
+        try_files \$uri \$uri/ /index.html;
+        index index.html;
+        
+        # 静态文件缓存
+        location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
+            expires 1y;
+            add_header Cache-Control "public, immutable";
+        }
     }
     
     # 后端API
@@ -1136,27 +1144,84 @@ EOF
 EOF
     
     # 配置Nginx优化
-    cat >> /etc/nginx/nginx.conf << 'EOF'
-# Alibaba Cloud Linux 3 Nginx 优化
+    log_info "配置Nginx性能优化..."
+    
+    # 备份nginx.conf
+    if [[ -f /etc/nginx/nginx.conf ]]; then
+        cp /etc/nginx/nginx.conf /etc/nginx/nginx.conf.backup.$(date +%Y%m%d_%H%M%S)
+    fi
+    
+    # 创建优化的nginx.conf
+    tee /etc/nginx/nginx.conf > /dev/null << 'EOF'
+# Alibaba Cloud Linux 3 优化的 Nginx 配置
+user nginx;
 worker_processes auto;
-worker_connections 1024;
-worker_rlimit_nofile 65535;
+error_log /var/log/nginx/error.log;
+pid /run/nginx.pid;
 
-# 启用gzip压缩
-gzip on;
-gzip_vary on;
-gzip_min_length 1024;
-gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript;
+events {
+    worker_connections 1024;
+    use epoll;
+    multi_accept on;
+}
 
-# 缓存配置
-open_file_cache max=1000 inactive=20s;
-open_file_cache_valid 30s;
-open_file_cache_min_uses 2;
-open_file_cache_errors on;
+http {
+    log_format main '$remote_addr - $remote_user [$time_local] "$request" '
+                    '$status $body_bytes_sent "$http_referer" '
+                    '"$http_user_agent" "$http_x_forwarded_for"';
+
+    access_log /var/log/nginx/access.log main;
+
+    sendfile on;
+    tcp_nopush on;
+    tcp_nodelay on;
+    keepalive_timeout 65;
+    types_hash_max_size 2048;
+
+    include /etc/nginx/mime.types;
+    default_type application/octet-stream;
+
+    # 启用gzip压缩
+    gzip on;
+    gzip_vary on;
+    gzip_min_length 1024;
+    gzip_comp_level 6;
+    gzip_types
+        text/plain
+        text/css
+        text/xml
+        text/javascript
+        application/json
+        application/javascript
+        application/xml+rss
+        application/atom+xml
+        image/svg+xml;
+
+    # 缓存配置
+    open_file_cache max=1000 inactive=20s;
+    open_file_cache_valid 30s;
+    open_file_cache_min_uses 2;
+    open_file_cache_errors on;
+
+    # 包含站点配置
+    include /etc/nginx/conf.d/*.conf;
+}
 EOF
     
-    # 重新加载Nginx配置
-    systemctl reload nginx
+    # 测试Nginx配置
+    log_info "测试Nginx配置..."
+    if nginx -t; then
+        log_success "Nginx配置测试通过"
+        
+        # 重新加载Nginx配置
+        systemctl reload nginx
+        log_success "Nginx配置重新加载成功"
+    else
+        log_error "Nginx配置测试失败"
+        log_info "Nginx配置错误信息："
+        nginx -t 2>&1
+        return 1
+    fi
     
     log_success "Alibaba Cloud Linux 3优化配置完成"
 }
