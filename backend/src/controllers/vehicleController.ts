@@ -10,6 +10,7 @@ export class VehicleController {
       const filter: VehicleFilter = {
         company_name: req.query.company_name as string,
         license_plate: req.query.license_plate as string,
+        status: req.query.status as string,
       }
 
       // 分页参数

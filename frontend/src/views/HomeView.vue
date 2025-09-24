@@ -69,7 +69,7 @@
           </template>
         </el-table-column>
       </el-table>
-      
+
       <!-- 分页组件 -->
       <div class="pagination-container" v-if="total > 0">
         <el-pagination
@@ -212,7 +212,7 @@ const fetchData = async () => {
 
     // 计算各公司车辆统计
     companyVehicleData.value = calculateCompanyStats(allVehiclesData.vehicles)
-    
+
     // 更新分页数据
     updatePaginatedData()
 
@@ -326,7 +326,7 @@ onMounted(() => {
     margin-top: 15px;
     padding: 8px 0;
   }
-  
+
   .pagination-container .el-pagination {
     flex-wrap: wrap;
     justify-content: center;
@@ -338,11 +338,11 @@ onMounted(() => {
     margin-top: 10px;
     padding: 5px 0;
   }
-  
+
   .pagination-container .el-pagination {
     font-size: 12px;
   }
-  
+
   .pagination-container .el-pagination .el-pager li {
     min-width: 24px;
     height: 24px;

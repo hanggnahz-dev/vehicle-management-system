@@ -317,23 +317,16 @@ const loadVehicles = async () => {
     loading.value = true
     const filter: VehicleFilter = {
       company_name: searchForm.company_name,
+      status: searchForm.status,
       license_plate: searchForm.license_plate,
     }
     await vehicleStore.fetchVehicles(filter, currentPage.value, pageSize.value)
-    // 如果有状态过滤条件，在前端进行过滤
-    let filteredVehicles = vehicleStore.vehicles
-    if (searchForm.status) {
-      filteredVehicles = vehicleStore.vehicles.filter(vehicle => {
-        const status = getVehicleStatus(vehicle.inspection_date)
-        return status.text === getStatusText(searchForm.status!)
-      })
-    }
-    // 应用排序
+    // 状态筛选现在由后端处理，前端只需要处理排序
+    let sortedVehicles = [...vehicleStore.vehicles]
     if (sortField.value && sortOrder.value) {
-      filteredVehicles = sortVehicles(filteredVehicles, sortField.value, sortOrder.value)
+      sortedVehicles = sortVehicles(sortedVehicles, sortField.value, sortOrder.value)
+      vehicleStore.vehicles = sortedVehicles
     }
-    // 更新车辆列表为过滤和排序后的结果
-    vehicleStore.vehicles = filteredVehicles
   } catch (error) {
     ElMessage.error('加载车辆列表失败')
   } finally {

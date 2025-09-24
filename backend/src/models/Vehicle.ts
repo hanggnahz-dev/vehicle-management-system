@@ -8,6 +8,21 @@ import type {
 } from '../types/vehicle.js'
 
 export class VehicleModel {
+  // 计算车辆状态
+  private static getVehicleStatus(inspectionDate: string): string {
+    const today = new Date()
+    const inspection = new Date(inspectionDate)
+    const diffTime = inspection.getTime() - today.getTime()
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+
+    if (diffDays > 7) {
+      return 'normal'
+    } else if (diffDays >= 0) {
+      return 'expiring'
+    } else {
+      return 'expired'
+    }
+  }
   // 获取所有车辆
   static async findAll(filter?: VehicleFilter): Promise<VehicleResponse[]> {
     let query = `
@@ -68,26 +83,32 @@ export class VehicleModel {
       }
     }
 
-    // 获取总数
-    const countQuery = `SELECT COUNT(*) as total FROM vehicles ${whereClause}`
-    const countResult = (await db.get(countQuery, params)) as { total: number }
-    const total = countResult.total
-
-    // 计算偏移量
-    const offset = (page - 1) * pageSize
-
-    // 获取分页数据
-    const dataQuery = `
+    // 获取所有符合基础条件的车辆
+    const allQuery = `
       SELECT id, company_name, license_plate, inspection_date, created_at, updated_at 
       FROM vehicles 
       ${whereClause}
       ORDER BY created_at DESC
-      LIMIT ? OFFSET ?
     `
-    const dataParams = [...params, pageSize, offset]
-    const rows = (await db.all(dataQuery, dataParams)) as Vehicle[]
+    const allRows = (await db.all(allQuery, params)) as Vehicle[]
 
-    const vehicles = rows.map(vehicle => ({
+    // 如果有状态筛选，进行前端筛选
+    let filteredVehicles = allRows
+    if (filter?.status) {
+      filteredVehicles = allRows.filter(vehicle => {
+        const status = this.getVehicleStatus(vehicle.inspection_date)
+        return status === filter.status
+      })
+    }
+
+    // 计算总数
+    const total = filteredVehicles.length
+
+    // 计算分页
+    const offset = (page - 1) * pageSize
+    const paginatedVehicles = filteredVehicles.slice(offset, offset + pageSize)
+
+    const vehicles = paginatedVehicles.map(vehicle => ({
       id: vehicle.id,
       company_name: vehicle.company_name,
       license_plate: vehicle.license_plate,

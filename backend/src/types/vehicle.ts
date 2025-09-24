@@ -31,6 +31,7 @@ export interface VehicleResponse {
 export interface VehicleFilter {
   company_name?: string
   license_plate?: string
+  status?: string
 }
 
 export interface ImportVehicleData {

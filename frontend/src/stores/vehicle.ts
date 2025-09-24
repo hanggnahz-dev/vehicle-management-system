@@ -26,6 +26,7 @@ export interface UpdateVehicleData {
 export interface VehicleFilter {
   company_name?: string
   license_plate?: string
+  status?: string
 }
 
 export interface PaginationInfo {
