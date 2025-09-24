@@ -90,7 +90,8 @@ export class VehicleModel {
           whereClause += ' AND (julianday(inspection_date) - julianday("now")) > 7'
         } else if (filter.status === 'expiring') {
           // 即将到期：审证日期距离今天0-7天
-          whereClause += ' AND (julianday(inspection_date) - julianday("now")) >= 0 AND (julianday(inspection_date) - julianday("now")) <= 7'
+          whereClause +=
+            ' AND (julianday(inspection_date) - julianday("now")) >= 0 AND (julianday(inspection_date) - julianday("now")) <= 7'
         } else if (filter.status === 'expired') {
           // 已过期：审证日期距离今天小于0天
           whereClause += ' AND (julianday(inspection_date) - julianday("now")) < 0'
@@ -100,8 +101,11 @@ export class VehicleModel {
 
     // 获取总数
     const countQuery = `SELECT COUNT(*) as total FROM vehicles ${whereClause}`
+    console.log('COUNT查询SQL:', countQuery)
+    console.log('COUNT查询参数:', params)
     const countResult = (await db.get(countQuery, params)) as { total: number }
     const total = countResult.total
+    console.log('查询到的总数:', total)
 
     // 计算偏移量
     const offset = (page - 1) * pageSize
@@ -115,7 +119,10 @@ export class VehicleModel {
       LIMIT ? OFFSET ?
     `
     const dataParams = [...params, pageSize, offset]
+    console.log('DATA查询SQL:', dataQuery)
+    console.log('DATA查询参数:', dataParams)
     const rows = (await db.all(dataQuery, dataParams)) as Vehicle[]
+    console.log('查询到的车辆数据:', rows)
 
     const vehicles = rows.map(vehicle => ({
       id: vehicle.id,

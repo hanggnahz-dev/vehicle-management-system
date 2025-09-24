@@ -15,6 +15,8 @@ export class VehicleController {
 
       console.log('控制器接收到的查询参数:', req.query)
       console.log('初始filter:', filter)
+      console.log('status参数类型:', typeof filter.status)
+      console.log('status参数值:', filter.status)
 
       // 分页参数
       const page = parseInt(req.query.page as string) || 1
@@ -22,12 +24,19 @@ export class VehicleController {
 
       // 移除空值
       Object.keys(filter).forEach(key => {
-        if (filter[key as keyof VehicleFilter] === undefined || filter[key as keyof VehicleFilter] === '') {
+        const value = filter[key as keyof VehicleFilter]
+        console.log(`处理参数 ${key}:`, value, '类型:', typeof value)
+        if (
+          value === undefined ||
+          value === ''
+        ) {
+          console.log(`删除空参数: ${key}`)
           delete filter[key as keyof VehicleFilter]
         }
       })
 
       console.log('处理后的filter:', filter)
+      console.log('最终filter对象键:', Object.keys(filter))
 
       const result = await VehicleModel.findAllWithPagination(filter, page, pageSize)
       res.json({
