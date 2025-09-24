@@ -123,7 +123,7 @@ check_alinux3_features() {
     fi
     
     # 检查阿里云工具
-    if grep -q "aliyun-assistant\|aliyun-cli" deploy-aliyun-alinux3.sh; then
+    if grep -q "aliyun-cli" deploy-aliyun-alinux3.sh; then
         log_success "包含阿里云工具安装"
     else
         log_error "缺少阿里云工具安装"

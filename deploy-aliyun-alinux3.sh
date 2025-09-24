@@ -127,7 +127,8 @@ optimize_alinux3_system() {
     $PACKAGE_MANAGER update -y
     
     # 安装阿里云优化工具
-    $PACKAGE_MANAGER install -y aliyun-assistant
+    # 注意：aliyun-assistant 在某些版本中可能不可用，跳过安装
+    # $PACKAGE_MANAGER install -y aliyun-assistant
     
     # 配置阿里云镜像源
     if [[ -f /etc/yum.repos.d/CentOS-Base.repo ]]; then
@@ -199,7 +200,6 @@ install_dependencies() {
         zlib-devel \
         policycoreutils-python-utils \
         selinux-policy-devel \
-        aliyun-cli \
         cloud-init \
         cloud-utils-growpart
     
@@ -644,7 +644,15 @@ configure_aliyun_security_group() {
         
         # 检查阿里云CLI是否已安装
         if ! command -v aliyun &> /dev/null; then
-            log_info "阿里云CLI已通过包管理器安装"
+            log_info "安装阿里云CLI..."
+            # 手动安装阿里云CLI
+            wget https://aliyuncli.alicdn.com/aliyun-cli-linux-latest-amd64.tgz
+            tar -xzf aliyun-cli-linux-latest-amd64.tgz
+            mv aliyun /usr/local/bin/
+            rm aliyun-cli-linux-latest-amd64.tgz
+            log_success "阿里云CLI安装完成"
+        else
+            log_info "阿里云CLI已安装"
         fi
         
         # 配置阿里云CLI
