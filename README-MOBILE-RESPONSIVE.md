@@ -13,6 +13,7 @@
 - **平板端**: 自适应布局
 
 #### 功能特点：
+
 - 自动检测屏幕尺寸
 - 手机端显示汉堡菜单图标
 - 侧边栏导航支持触摸操作
@@ -25,6 +26,7 @@
 - **自适应**: 表单元素宽度根据屏幕尺寸调整
 
 #### 适配内容：
+
 - 搜索表单
 - 添加/编辑车辆表单
 - 用户管理表单
@@ -43,6 +45,7 @@
 - **自适应**: 根据屏幕尺寸调整弹窗大小
 
 #### 适配弹窗：
+
 - 添加/编辑车辆对话框
 - 导入数据对话框
 - 用户管理对话框
@@ -62,18 +65,20 @@
 ## 断点设置
 
 ### 主要断点：
+
 - **手机端**: ≤ 768px
 - **小屏手机**: ≤ 480px
 - **平板端**: 769px - 1024px
 - **桌面端**: > 1024px
 
 ### 特殊适配：
+
 - **横屏手机**: 特殊布局优化
 - **大屏设备**: 最大宽度限制
 
 ## 技术实现
 
-### 1. CSS媒体查询
+### 1. CSS 媒体查询
 
 ```css
 /* 手机端 */
@@ -81,7 +86,7 @@
   .desktop-menu {
     display: none !important;
   }
-  
+
   .mobile-menu-trigger {
     display: block;
   }
@@ -96,22 +101,22 @@
 }
 ```
 
-### 2. Vue响应式检测
+### 2. Vue 响应式检测
 
 ```typescript
 // 响应式检测
-const isMobile = ref(false)
+const isMobile = ref(false);
 
 // 检测屏幕尺寸
 const checkScreenSize = () => {
-  isMobile.value = window.innerWidth <= 768
-}
+  isMobile.value = window.innerWidth <= 768;
+};
 
 // 监听窗口大小变化
-window.addEventListener('resize', checkScreenSize)
+window.addEventListener("resize", checkScreenSize);
 ```
 
-### 3. Element Plus响应式组件
+### 3. Element Plus 响应式组件
 
 ```vue
 <!-- 响应式栅格 -->
@@ -129,26 +134,26 @@ window.addEventListener('resize', checkScreenSize)
 </el-form>
 
 <!-- 响应式弹窗 -->
-<el-dialog 
-  :width="isMobile ? '95%' : '500px'"
-  :fullscreen="isMobile"
->
+<el-dialog :width="isMobile ? '95%' : '500px'" :fullscreen="isMobile">
 </el-dialog>
 ```
 
 ## 用户体验优化
 
 ### 1. 触摸友好
+
 - 按钮尺寸适合手指点击
 - 表单元素间距合理
 - 滑动操作流畅
 
 ### 2. 视觉优化
+
 - 字体大小适配屏幕
 - 颜色对比度良好
 - 图标清晰可见
 
 ### 3. 性能优化
+
 - 响应式图片加载
 - 按需加载组件
 - 流畅的动画效果
@@ -156,18 +161,21 @@ window.addEventListener('resize', checkScreenSize)
 ## 测试建议
 
 ### 1. 设备测试
+
 - iPhone (各种尺寸)
 - Android (各种尺寸)
-- iPad/Android平板
+- iPad/Android 平板
 - 桌面浏览器
 
 ### 2. 功能测试
+
 - 导航菜单切换
 - 表单输入和提交
 - 弹窗显示和关闭
 - 表格滚动和分页
 
 ### 3. 性能测试
+
 - 页面加载速度
 - 交互响应时间
 - 内存使用情况
@@ -175,6 +183,7 @@ window.addEventListener('resize', checkScreenSize)
 ## 浏览器支持
 
 ### 移动端浏览器：
+
 - Safari (iOS)
 - Chrome (Android)
 - Firefox Mobile
@@ -183,6 +192,7 @@ window.addEventListener('resize', checkScreenSize)
 - 其他主流移动浏览器
 
 ### 桌面端浏览器：
+
 - Chrome
 - Firefox
 - Safari
@@ -192,6 +202,7 @@ window.addEventListener('resize', checkScreenSize)
 ## 维护说明
 
 ### 1. 添加新的响应式组件
+
 ```vue
 <template>
   <div class="responsive-component">
@@ -213,7 +224,7 @@ window.addEventListener('resize', checkScreenSize)
   .desktop-only {
     display: none;
   }
-  
+
   .mobile-only {
     display: block;
   }
@@ -222,43 +233,49 @@ window.addEventListener('resize', checkScreenSize)
 ```
 
 ### 2. 响应式检测工具
+
 ```typescript
 // 在组件中使用
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted } from "vue";
 
-const isMobile = ref(false)
+const isMobile = ref(false);
 
 const checkScreenSize = () => {
-  isMobile.value = window.innerWidth <= 768
-}
+  isMobile.value = window.innerWidth <= 768;
+};
 
 onMounted(() => {
-  checkScreenSize()
-  window.addEventListener('resize', checkScreenSize)
-})
+  checkScreenSize();
+  window.addEventListener("resize", checkScreenSize);
+});
 
 onUnmounted(() => {
-  window.removeEventListener('resize', checkScreenSize)
-})
+  window.removeEventListener("resize", checkScreenSize);
+});
 ```
 
 ## 常见问题
 
 ### Q: 为什么某些元素在手机端显示异常？
-A: 检查CSS媒体查询是否正确设置，确保断点设置合理。
+
+A: 检查 CSS 媒体查询是否正确设置，确保断点设置合理。
 
 ### Q: 如何调试响应式布局？
+
 A: 使用浏览器开发者工具的设备模拟功能，测试不同屏幕尺寸。
 
 ### Q: 弹窗在手机端显示不完整？
+
 A: 确保设置了 `:fullscreen="isMobile"` 属性。
 
 ### Q: 表单在手机端布局混乱？
+
 A: 检查表单的 `inline` 属性是否根据屏幕尺寸动态设置。
 
 ## 更新日志
 
 ### v1.0.0 (2024-09-24)
+
 - ✅ 添加响应式头部导航
 - ✅ 优化表单布局
 - ✅ 优化表格显示
@@ -266,5 +283,5 @@ A: 检查表单的 `inline` 属性是否根据屏幕尺寸动态设置。
 - ✅ 优化首页布局
 - ✅ 优化登录页面
 - ✅ 添加响应式检测
-- ✅ 完善CSS媒体查询
+- ✅ 完善 CSS 媒体查询
 - ✅ 测试各种设备兼容性

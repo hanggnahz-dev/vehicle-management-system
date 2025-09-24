@@ -189,20 +189,20 @@ onMounted(() => {
     max-width: 100%;
     margin: 0;
   }
-  
+
   .welcome-content {
     padding: 10px;
   }
-  
+
   .welcome-content .el-row {
     margin: 0 -10px;
   }
-  
+
   .welcome-content .el-col {
     padding: 0 10px;
     margin-bottom: 20px;
   }
-  
+
   .data-card {
     margin-top: 10px !important;
   }
@@ -212,16 +212,16 @@ onMounted(() => {
   .welcome-content {
     padding: 5px;
   }
-  
+
   .welcome-content .el-row {
     margin: 0 -5px;
   }
-  
+
   .welcome-content .el-col {
     padding: 0 5px;
     margin-bottom: 15px;
   }
-  
+
   .card-header {
     flex-direction: column;
     align-items: flex-start;

@@ -216,16 +216,16 @@ onMounted(() => {
   .login-container {
     padding: 10px;
   }
-  
+
   .login-box {
     padding: 30px 20px;
     max-width: 100%;
   }
-  
+
   .login-header h2 {
     font-size: 20px;
   }
-  
+
   .login-header p {
     font-size: 13px;
   }
@@ -235,7 +235,7 @@ onMounted(() => {
   .login-container {
     padding: 5px;
   }
-  
+
   .login-box {
     padding: 20px 15px;
     border-radius: 8px;
@@ -244,11 +244,11 @@ onMounted(() => {
   .login-header h2 {
     font-size: 18px;
   }
-  
+
   .login-header p {
     font-size: 12px;
   }
-  
+
   .login-button {
     height: 40px;
     font-size: 14px;
@@ -261,7 +261,7 @@ onMounted(() => {
     align-items: flex-start;
     padding-top: 10px;
   }
-  
+
   .login-box {
     margin-top: 20px;
     max-height: 90vh;

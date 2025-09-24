@@ -4,22 +4,22 @@
       <el-header v-if="authStore.isAuthenticated">
         <div class="header-content">
           <!-- 桌面端导航 -->
-          <el-menu 
-            mode="horizontal" 
-            :default-active="$route.path" 
-            router 
+          <el-menu
+            mode="horizontal"
+            :default-active="$route.path"
+            router
             class="header-menu desktop-menu"
           >
             <el-menu-item index="/">首页</el-menu-item>
             <el-menu-item index="/vehicles">车辆管理</el-menu-item>
             <el-menu-item v-if="authStore.isAdmin" index="/users">用户管理</el-menu-item>
           </el-menu>
-          
+
           <!-- 手机端汉堡菜单 -->
           <div class="mobile-menu-trigger" @click="showMobileMenu = !showMobileMenu">
             <el-icon><Menu /></el-icon>
           </div>
-          
+
           <div class="user-info">
             <el-dropdown @command="handleCommand">
               <span class="user-dropdown">
@@ -35,7 +35,7 @@
             </el-dropdown>
           </div>
         </div>
-        
+
         <!-- 手机端菜单 -->
         <div v-if="showMobileMenu" class="mobile-menu" @click="showMobileMenu = false">
           <div class="mobile-menu-content" @click.stop>
@@ -45,9 +45,9 @@
                 <el-icon><Close /></el-icon>
               </el-button>
             </div>
-            <el-menu 
-              :default-active="$route.path" 
-              router 
+            <el-menu
+              :default-active="$route.path"
+              router
               class="mobile-menu-list"
               @select="showMobileMenu = false"
             >
@@ -235,23 +235,23 @@ const handleCommand = async (command: string) => {
   .desktop-menu {
     display: none !important;
   }
-  
+
   .mobile-menu-trigger {
     display: block;
   }
-  
+
   .mobile-menu {
     display: block;
   }
-  
+
   .user-name {
     display: none;
   }
-  
+
   .user-info {
     padding-right: 10px;
   }
-  
+
   .el-main {
     padding: 10px;
   }
@@ -262,11 +262,11 @@ const handleCommand = async (command: string) => {
     height: 50px;
     line-height: 50px;
   }
-  
+
   .mobile-menu-content {
     width: 100%;
   }
-  
+
   .el-main {
     padding: 5px;
   }

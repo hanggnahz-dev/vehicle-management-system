@@ -4,7 +4,7 @@
       <template #header>
         <div class="card-header">
           <span>车辆管理</span>
-          <div>
+          <div class="header-buttons">
             <el-button type="primary" @click="showAddDialog = true">
               <el-icon><Plus /></el-icon>
               添加车辆
@@ -56,15 +56,17 @@
           </el-select>
         </el-form-item>
 
-        <el-form-item>
-          <el-button type="primary" @click="handleSearch">
-            <el-icon><Search /></el-icon>
-            搜索
-          </el-button>
-          <el-button @click="handleReset">
-            <el-icon><Refresh /></el-icon>
-            重置
-          </el-button>
+        <el-form-item class="search-buttons-item">
+          <div class="search-buttons">
+            <el-button type="primary" @click="handleSearch">
+              <el-icon><Search /></el-icon>
+              搜索
+            </el-button>
+            <el-button @click="handleReset">
+              <el-icon><Refresh /></el-icon>
+              重置
+            </el-button>
+          </div>
         </el-form-item>
       </el-form>
 
@@ -164,9 +166,9 @@
     </el-dialog>
 
     <!-- 导入数据对话框 -->
-    <el-dialog 
-      v-model="showImportDialog" 
-      title="导入车辆数据" 
+    <el-dialog
+      v-model="showImportDialog"
+      title="导入车辆数据"
       :width="isMobile ? '95%' : '600px'"
       :fullscreen="isMobile"
     >
@@ -725,7 +727,7 @@ const getStatusText = (statusValue: string) => {
 onMounted(() => {
   // 初始化时只加载公司列表和车牌号列表，不加载车辆列表
   loadMetaData()
-  
+
   // 初始化响应式检测
   checkScreenSize()
   window.addEventListener('resize', checkScreenSize)
@@ -802,14 +804,17 @@ onUnmounted(() => {
   .card-header {
     flex-direction: column;
     align-items: flex-start;
-    gap: 10px;
+    gap: 15px;
   }
   
-  .card-header > div {
+  .header-buttons {
     width: 100%;
     display: flex;
     gap: 10px;
-    flex-wrap: wrap;
+  }
+  
+  .header-buttons .el-button {
+    flex: 1;
   }
   
   .search-form {
@@ -818,6 +823,21 @@ onUnmounted(() => {
   
   .search-form .el-form-item {
     margin-bottom: 15px;
+    width: 100%;
+  }
+  
+  .search-form .el-form-item__label {
+    width: 100% !important;
+    text-align: left;
+    margin-bottom: 5px;
+  }
+  
+  .search-form .el-form-item__content {
+    width: 100% !important;
+  }
+  
+  .search-buttons-item {
+    width: 100%;
   }
   
   .search-buttons {
@@ -832,19 +852,34 @@ onUnmounted(() => {
   
   .pagination-container {
     text-align: center;
+    margin-top: 15px;
   }
   
   .pagination-container .el-pagination {
     justify-content: center;
   }
+  
+  /* 表格底部修复 */
+  .el-table {
+    margin-bottom: 0;
+  }
+  
+  .el-card__body {
+    padding-bottom: 15px;
+  }
 }
 
 @media (max-width: 480px) {
-  .card-header > div {
-    flex-direction: column;
+  .card-header {
+    gap: 10px;
   }
   
-  .card-header .el-button {
+  .header-buttons {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .header-buttons .el-button {
     width: 100%;
   }
   
@@ -852,8 +887,20 @@ onUnmounted(() => {
     padding: 10px;
   }
   
+  .search-form .el-form-item {
+    margin-bottom: 12px;
+  }
+  
+  .search-buttons {
+    gap: 8px;
+  }
+  
   .import-tips {
     padding: 10px;
+  }
+  
+  .pagination-container {
+    margin-top: 10px;
   }
 }
 </style>
