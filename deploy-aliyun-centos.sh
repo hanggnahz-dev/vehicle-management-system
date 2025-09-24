@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# 阿里云ECS一键部署脚本 - 车辆管理系统
+# 阿里云ECS CentOS系列专用部署脚本 - 车辆管理系统
 # 作者: AI Assistant
 # 版本: 1.0
-# 用途: 在阿里云ECS上自动部署车辆管理系统
+# 用途: 在阿里云ECS CentOS系列系统上自动部署车辆管理系统
 
 set -e  # 遇到错误立即退出
 
@@ -50,9 +50,9 @@ check_root() {
     log_success "检测到root用户，开始部署..."
 }
 
-# 检查系统版本
-check_system() {
-    log_info "检查系统版本..."
+# 检查CentOS系列系统
+check_centos_system() {
+    log_info "检查CentOS系列系统..."
     
     if [[ -f /etc/os-release ]]; then
         . /etc/os-release
@@ -69,19 +69,26 @@ check_system() {
         exit 1
     fi
     
-    # 检测CentOS系列
+    # 检查是否为CentOS系列
     if [[ "$ID" == "centos" ]] || [[ "$ID" == "rhel" ]] || [[ "$ID" == "rocky" ]] || [[ "$ID" == "almalinux" ]] || [[ "$OS" == *"CentOS"* ]] || [[ "$OS" == *"Red Hat"* ]] || [[ "$OS" == *"Rocky"* ]] || [[ "$OS" == *"AlmaLinux"* ]]; then
-        CENTOS_SERIES=true
         log_success "检测到CentOS系列系统: $OS $VER"
-    elif [[ "$OS" == *"Ubuntu"* ]] || [[ "$ID" == "ubuntu" ]]; then
-        CENTOS_SERIES=false
-        log_success "检测到Ubuntu系统: $OS $VER"
-    elif [[ "$OS" == *"Alibaba Cloud Linux"* ]] || [[ "$ID" == "alinux" ]]; then
-        CENTOS_SERIES=true
-        log_success "检测到Alibaba Cloud Linux: $OS $VER"
+        
+        # 检测包管理器
+        if command -v dnf &> /dev/null; then
+            PACKAGE_MANAGER="dnf"
+            log_info "使用dnf包管理器 (CentOS 8+/Rocky Linux/AlmaLinux)"
+        elif command -v yum &> /dev/null; then
+            PACKAGE_MANAGER="yum"
+            log_info "使用yum包管理器 (CentOS 7及更早版本)"
+        else
+            log_error "未找到支持的包管理器"
+            exit 1
+        fi
     else
-        CENTOS_SERIES=false
-        log_warning "未测试的操作系统: $OS $VER，继续执行..."
+        log_error "此脚本仅支持CentOS系列系统"
+        log_info "检测到的系统: $OS $VER"
+        log_info "请使用通用部署脚本: ./deploy-aliyun.sh"
+        exit 1
     fi
 }
 
@@ -119,100 +126,47 @@ get_user_config() {
 
 # 安装系统依赖
 install_dependencies() {
-    log_info "安装系统依赖..."
+    log_info "安装CentOS系列系统依赖..."
     
-    if [[ "$CENTOS_SERIES" == "true" ]]; then
-        # CentOS系列系统
-        log_info "为CentOS系列系统安装依赖..."
-        
-        # 更新包列表
-        if command -v dnf &> /dev/null; then
-            # CentOS 8+/Rocky Linux/AlmaLinux
-            dnf update -y
-            dnf install -y epel-release
-            dnf install -y \
-                curl \
-                wget \
-                git \
-                unzip \
-                gcc \
-                gcc-c++ \
-                make \
-                openssl-devel \
-                nginx \
-                firewalld \
-                certbot \
-                python3-certbot-nginx \
-                python3-pip \
-                python3-devel \
-                libffi-devel \
-                openssl-devel \
-                bzip2-devel \
-                readline-devel \
-                sqlite-devel \
-                tk-devel \
-                libuuid-devel \
-                xz-devel \
-                zlib-devel
-        elif command -v yum &> /dev/null; then
-            # CentOS 7及更早版本
-            yum update -y
-            yum install -y epel-release
-            yum install -y \
-                curl \
-                wget \
-                git \
-                unzip \
-                gcc \
-                gcc-c++ \
-                make \
-                openssl-devel \
-                nginx \
-                firewalld \
-                certbot \
-                python3-certbot-nginx \
-                python3-pip \
-                python3-devel \
-                libffi-devel \
-                openssl-devel \
-                bzip2-devel \
-                readline-devel \
-                sqlite-devel \
-                tk-devel \
-                libuuid-devel \
-                xz-devel \
-                zlib-devel
-        else
-            log_error "CentOS系列系统未找到包管理器"
-            exit 1
-        fi
-        
-        # 启动并启用firewalld
-        systemctl start firewalld
-        systemctl enable firewalld
-        
-    else
-        # Ubuntu系统
-        log_info "为Ubuntu系统安装依赖..."
-        apt-get update
-        apt-get install -y \
-            curl \
-            wget \
-            git \
-            unzip \
-            build-essential \
-            software-properties-common \
-            apt-transport-https \
-            ca-certificates \
-            gnupg \
-            lsb-release \
-            ufw \
-            nginx \
-            certbot \
-            python3-certbot-nginx
-    fi
+    # 更新包列表
+    $PACKAGE_MANAGER update -y
     
-    log_success "系统依赖安装完成"
+    # 安装EPEL仓库
+    $PACKAGE_MANAGER install -y epel-release
+    
+    # 安装基础依赖
+    $PACKAGE_MANAGER install -y \
+        curl \
+        wget \
+        git \
+        unzip \
+        gcc \
+        gcc-c++ \
+        make \
+        openssl-devel \
+        nginx \
+        firewalld \
+        certbot \
+        python3-certbot-nginx \
+        python3-pip \
+        python3-devel \
+        libffi-devel \
+        openssl-devel \
+        bzip2-devel \
+        readline-devel \
+        sqlite-devel \
+        tk-devel \
+        libuuid-devel \
+        xz-devel \
+        zlib-devel \
+        policycoreutils-python-utils \
+        selinux-policy-devel
+    
+    # 启动并启用firewalld
+    systemctl start firewalld
+    systemctl enable firewalld
+    
+    log_success "CentOS系列系统依赖安装完成"
 }
 
 # 安装Node.js
@@ -234,25 +188,11 @@ install_nodejs() {
         fi
     fi
     
-    # 安装Node.js 20.x
-    if [[ "$CENTOS_SERIES" == "true" ]]; then
-        # CentOS系列系统
-        log_info "为CentOS系列系统安装Node.js..."
-        
-        # 添加NodeSource仓库
-        curl -fsSL https://rpm.nodesource.com/setup_20.x | bash -
-        
-        if command -v dnf &> /dev/null; then
-            dnf install -y nodejs
-        elif command -v yum &> /dev/null; then
-            yum install -y nodejs
-        fi
-    else
-        # Ubuntu系统
-        log_info "为Ubuntu系统安装Node.js..."
-        curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
-        apt-get install -y nodejs
-    fi
+    # 添加NodeSource仓库
+    curl -fsSL https://rpm.nodesource.com/setup_20.x | bash -
+    
+    # 安装Node.js
+    $PACKAGE_MANAGER install -y nodejs
     
     # 验证安装
     NODE_VERSION=$(node --version)
@@ -458,7 +398,7 @@ configure_nginx() {
     # 创建Nginx配置
     if [[ -n "$DOMAIN_NAME" ]]; then
         # 有域名的情况
-        tee /etc/nginx/sites-available/vehicle-management > /dev/null << EOF
+        tee /etc/nginx/conf.d/vehicle-management.conf > /dev/null << EOF
 server {
     listen 80;
     server_name $DOMAIN_NAME;
@@ -493,7 +433,7 @@ server {
 EOF
     else
         # 无域名的情况，使用IP访问
-        tee /etc/nginx/sites-available/vehicle-management > /dev/null << EOF
+        tee /etc/nginx/conf.d/vehicle-management.conf > /dev/null << EOF
 server {
     listen 80;
     server_name _;
@@ -528,29 +468,17 @@ server {
 EOF
     fi
 
-    # 启用站点
-    if [[ "$CENTOS_SERIES" == "true" ]]; then
-        # CentOS系列系统
-        log_info "为CentOS系列系统配置Nginx..."
-        cp /etc/nginx/sites-available/vehicle-management /etc/nginx/conf.d/vehicle-management.conf
-        
-        # 确保conf.d目录存在
-        mkdir -p /etc/nginx/conf.d
-        
-        # 备份默认配置
-        if [[ -f /etc/nginx/nginx.conf ]]; then
-            cp /etc/nginx/nginx.conf /etc/nginx/nginx.conf.backup
-        fi
-        
-        # 确保nginx.conf包含conf.d目录
-        if ! grep -q "include /etc/nginx/conf.d/\*.conf;" /etc/nginx/nginx.conf; then
-            sed -i '/http {/a\    include /etc/nginx/conf.d/*.conf;' /etc/nginx/nginx.conf
-        fi
-    else
-        # Ubuntu系统
-        log_info "为Ubuntu系统配置Nginx..."
-        ln -sf /etc/nginx/sites-available/vehicle-management /etc/nginx/sites-enabled/
-        rm -f /etc/nginx/sites-enabled/default
+    # 确保conf.d目录存在
+    mkdir -p /etc/nginx/conf.d
+    
+    # 备份默认配置
+    if [[ -f /etc/nginx/nginx.conf ]]; then
+        cp /etc/nginx/nginx.conf /etc/nginx/nginx.conf.backup
+    fi
+    
+    # 确保nginx.conf包含conf.d目录
+    if ! grep -q "include /etc/nginx/conf.d/\*.conf;" /etc/nginx/nginx.conf; then
+        sed -i '/http {/a\    include /etc/nginx/conf.d/*.conf;' /etc/nginx/nginx.conf
     fi
     
     # 测试Nginx配置
@@ -615,46 +543,28 @@ start_services() {
 
 # 配置防火墙
 configure_firewall() {
-    log_info "配置防火墙..."
+    log_info "配置CentOS系列防火墙..."
     
-    if [[ "$CENTOS_SERIES" == "true" ]]; then
-        # CentOS系列系统使用firewalld
-        log_info "为CentOS系列系统配置firewalld..."
-        
-        # 确保firewalld已安装并启动
-        if ! systemctl is-active --quiet firewalld; then
-            systemctl start firewalld
-        fi
-        systemctl enable firewalld
-        
-        # 配置防火墙规则
-        firewall-cmd --permanent --add-service=ssh
-        firewall-cmd --permanent --add-service=http
-        firewall-cmd --permanent --add-service=https
-        firewall-cmd --permanent --add-port=3000/tcp
-        firewall-cmd --permanent --add-port=5000/tcp
-        
-        # 重新加载防火墙规则
-        firewall-cmd --reload
-        
-        # 检查防火墙状态
-        firewall-cmd --list-all
-        
-    else
-        # Ubuntu系统使用ufw
-        log_info "为Ubuntu系统配置ufw..."
-        ufw --force reset
-        ufw default deny incoming
-        ufw default allow outgoing
-        ufw allow ssh
-        ufw allow 80/tcp
-        ufw allow 443/tcp
-        ufw allow 3000/tcp
-        ufw allow 5000/tcp
-        ufw --force enable
+    # 确保firewalld已安装并启动
+    if ! systemctl is-active --quiet firewalld; then
+        systemctl start firewalld
     fi
+    systemctl enable firewalld
     
-    log_success "防火墙配置完成"
+    # 配置防火墙规则
+    firewall-cmd --permanent --add-service=ssh
+    firewall-cmd --permanent --add-service=http
+    firewall-cmd --permanent --add-service=https
+    firewall-cmd --permanent --add-port=3000/tcp
+    firewall-cmd --permanent --add-port=5000/tcp
+    
+    # 重新加载防火墙规则
+    firewall-cmd --reload
+    
+    # 检查防火墙状态
+    firewall-cmd --list-all
+    
+    log_success "CentOS系列防火墙配置完成"
 }
 
 # 配置阿里云安全组
@@ -712,7 +622,7 @@ show_deployment_info() {
     
     echo ""
     echo "=========================================="
-    echo "           阿里云部署信息"
+    echo "         CentOS系列部署信息"
     echo "=========================================="
     echo "项目目录: $PROJECT_DIR"
     echo "公网IP: $PUBLIC_IP"
@@ -736,6 +646,11 @@ show_deployment_info() {
     echo "重启前端: systemctl restart vehicle-frontend"
     echo "查看日志: journalctl -u vehicle-backend -f"
     echo ""
+    echo "CentOS系列特有命令:"
+    echo "查看防火墙状态: firewall-cmd --list-all"
+    echo "重启防火墙: systemctl restart firewalld"
+    echo "查看Nginx状态: systemctl status nginx"
+    echo ""
     echo "阿里云配置:"
     echo "地域: $REGION"
     echo "Access Key: ${ALIYUN_ACCESS_KEY:0:8}..."
@@ -746,13 +661,13 @@ show_deployment_info() {
 # 主函数
 main() {
     echo "=========================================="
-    echo "   车辆管理系统阿里云一键部署脚本"
+    echo "   车辆管理系统CentOS系列专用部署脚本"
     echo "=========================================="
     echo ""
     
     # 检查系统要求
     check_root
-    check_system
+    check_centos_system
     
     # 获取用户配置
     get_user_config
@@ -784,7 +699,7 @@ main() {
     # 显示部署信息
     show_deployment_info
     
-    log_success "阿里云部署完成！"
+    log_success "CentOS系列部署完成！"
 }
 
 # 运行主函数

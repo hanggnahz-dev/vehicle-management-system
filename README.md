@@ -147,6 +147,26 @@ chmod +x deploy-aliyun.sh
 - ✅ 自动配置防火墙
 - ✅ 支持 Ubuntu/CentOS/Alibaba Cloud Linux
 
+#### CentOS 系列专用部署
+
+```bash
+# 下载项目
+git clone <your-repo-url>
+cd fullstack-project
+
+# 运行 CentOS 系列专用部署脚本
+chmod +x deploy-aliyun-centos.sh
+./deploy-aliyun-centos.sh
+```
+
+**CentOS 系列部署特性：**
+
+- ✅ 专门优化 CentOS/RHEL/Rocky Linux/AlmaLinux
+- ✅ 自动检测包管理器（yum/dnf）
+- ✅ 完整的 firewalld 防火墙配置
+- ✅ EPEL 仓库自动安装
+- ✅ NodeSource RPM 仓库支持
+
 ### 🍎 Mac 用户快速开始
 
 如果您使用的是 Mac 系统，推荐使用以下方式快速启动：
