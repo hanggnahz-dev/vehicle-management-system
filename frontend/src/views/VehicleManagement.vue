@@ -318,23 +318,38 @@ const loadVehicles = async () => {
     const filter: VehicleFilter = {
       company_name: searchForm.company_name,
       license_plate: searchForm.license_plate,
+      status: searchForm.status,
     }
+    
+    console.log('=== loadVehicles 开始 ===')
+    console.log('当前页码:', currentPage.value)
+    console.log('每页大小:', pageSize.value)
+    console.log('筛选条件:', filter)
+    console.log('筛选前车辆数量:', vehicleStore.vehicles.length)
+    console.log('筛选前车辆数据:', vehicleStore.vehicles)
+    
     await vehicleStore.fetchVehicles(filter, currentPage.value, pageSize.value)
-    // 如果有状态过滤条件，在前端进行过滤
-    let filteredVehicles = vehicleStore.vehicles
-    if (searchForm.status) {
-      filteredVehicles = vehicleStore.vehicles.filter(vehicle => {
-        const status = getVehicleStatus(vehicle.inspection_date)
-        return status.text === getStatusText(searchForm.status!)
-      })
-    }
-    // 应用排序
+    
+    console.log('后端返回的车辆数据:', vehicleStore.vehicles)
+    console.log('后端返回的车辆数量:', vehicleStore.vehicles.length)
+    console.log('后端返回的分页信息:', vehicleStore.pagination)
+    
+    // 状态筛选现在由后端处理，前端只需要处理排序
+    let sortedVehicles = [...vehicleStore.vehicles] // 创建副本用于排序
     if (sortField.value && sortOrder.value) {
-      filteredVehicles = sortVehicles(filteredVehicles, sortField.value, sortOrder.value)
+      console.log('应用排序:', { field: sortField.value, order: sortOrder.value })
+      sortedVehicles = sortVehicles(sortedVehicles, sortField.value, sortOrder.value)
+      console.log('排序后的车辆数据:', sortedVehicles)
     }
-    // 更新车辆列表为过滤和排序后的结果
-    vehicleStore.vehicles = filteredVehicles
+    
+    // 更新车辆列表
+    vehicleStore.vehicles = sortedVehicles
+    console.log('最终显示的车辆数据:', vehicleStore.vehicles)
+    console.log('最终显示的车辆数量:', vehicleStore.vehicles.length)
+    console.log('=== loadVehicles 结束 ===')
+    
   } catch (error) {
+    console.error('加载车辆列表失败:', error)
     ElMessage.error('加载车辆列表失败')
   } finally {
     loading.value = false
