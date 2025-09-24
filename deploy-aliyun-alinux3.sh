@@ -124,8 +124,19 @@ optimize_alinux3_system() {
     log_info "优化Alibaba Cloud Linux 3系统..."
     
     # 询问是否配置镜像源
-    read -p "是否配置阿里云镜像源加速？(y/n，默认y): " CONFIGURE_MIRROR
-    CONFIGURE_MIRROR=${CONFIGURE_MIRROR:-y}
+    echo "镜像源配置选项："
+    echo "1) 配置阿里云镜像源加速（推荐）"
+    echo "2) 使用系统默认源"
+    echo "3) 跳过镜像源配置"
+    read -p "请选择 (1/2/3，默认1): " MIRROR_OPTION
+    MIRROR_OPTION=${MIRROR_OPTION:-1}
+    
+    case $MIRROR_OPTION in
+        1) CONFIGURE_MIRROR="y" ;;
+        2) CONFIGURE_MIRROR="n" ;;
+        3) CONFIGURE_MIRROR="skip" ;;
+        *) CONFIGURE_MIRROR="y" ;;
+    esac
     
     # 更新系统
     $PACKAGE_MANAGER update -y
@@ -142,7 +153,7 @@ optimize_alinux3_system() {
             mv /etc/yum.repos.d/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo.backup
         fi
     
-    # 使用阿里云镜像源
+    # 使用阿里云镜像源（只配置基础仓库）
     cat > /etc/yum.repos.d/aliyun.repo << 'EOF'
 [aliyun-base]
 name=Aliyun Linux - Base
@@ -157,20 +168,6 @@ baseurl=https://mirrors.aliyun.com/alinux/3/updates/$basearch/
 enabled=1
 gpgcheck=0
 skip_if_unavailable=1
-
-[aliyun-extras]
-name=Aliyun Linux - Extras
-baseurl=https://mirrors.aliyun.com/alinux/3/extras/$basearch/
-enabled=1
-gpgcheck=0
-skip_if_unavailable=1
-
-[aliyun-plus]
-name=Aliyun Linux - Plus
-baseurl=https://mirrors.aliyun.com/alinux/3/plus/$basearch/
-enabled=1
-gpgcheck=0
-skip_if_unavailable=1
 EOF
     
     # 清理缓存并重新生成
@@ -180,7 +177,7 @@ EOF
     if ! $PACKAGE_MANAGER makecache; then
         log_warning "阿里云镜像源缓存生成失败，尝试备用方案..."
         
-        # 使用官方镜像源作为备用
+        # 使用官方镜像源作为备用（只配置基础仓库）
         cat > /etc/yum.repos.d/aliyun-backup.repo << 'EOF'
 [alinux-base]
 name=Alibaba Cloud Linux - Base
@@ -195,31 +192,50 @@ baseurl=https://mirrors.cloud.aliyuncs.com/alinux/3/updates/$basearch/
 enabled=1
 gpgcheck=0
 skip_if_unavailable=1
-
-[alinux-extras]
-name=Alibaba Cloud Linux - Extras
-baseurl=https://mirrors.cloud.aliyuncs.com/alinux/3/extras/$basearch/
-enabled=1
-gpgcheck=0
-skip_if_unavailable=1
 EOF
         
         # 再次尝试生成缓存
         if ! $PACKAGE_MANAGER makecache; then
-            log_warning "备用镜像源也失败，将使用系统默认源"
-            # 恢复原始配置
-            if [[ -f /etc/yum.repos.d/CentOS-Base.repo.backup ]]; then
-                mv /etc/yum.repos.d/CentOS-Base.repo.backup /etc/yum.repos.d/CentOS-Base.repo
+            log_warning "备用镜像源也失败，尝试使用CentOS镜像源..."
+            
+            # 使用CentOS镜像源作为最后备用
+            cat > /etc/yum.repos.d/centos-backup.repo << 'EOF'
+[centos-base]
+name=CentOS - Base
+baseurl=https://mirrors.aliyun.com/centos/8-stream/BaseOS/$basearch/os/
+enabled=1
+gpgcheck=0
+skip_if_unavailable=1
+
+[centos-updates]
+name=CentOS - Updates
+baseurl=https://mirrors.aliyun.com/centos/8-stream/BaseOS/$basearch/updates/
+enabled=1
+gpgcheck=0
+skip_if_unavailable=1
+EOF
+            
+            # 最后一次尝试
+            if ! $PACKAGE_MANAGER makecache; then
+                log_warning "所有镜像源都失败，将使用系统默认源"
+                # 恢复原始配置
+                if [[ -f /etc/yum.repos.d/CentOS-Base.repo.backup ]]; then
+                    mv /etc/yum.repos.d/CentOS-Base.repo.backup /etc/yum.repos.d/CentOS-Base.repo
+                fi
+                rm -f /etc/yum.repos.d/aliyun.repo /etc/yum.repos.d/aliyun-backup.repo /etc/yum.repos.d/centos-backup.repo
+            else
+                log_success "CentOS镜像源配置成功"
             fi
-            rm -f /etc/yum.repos.d/aliyun.repo /etc/yum.repos.d/aliyun-backup.repo
         else
             log_success "备用镜像源配置成功"
         fi
     else
         log_success "阿里云镜像源配置成功"
     fi
+    elif [[ "$CONFIGURE_MIRROR" == "n" || "$CONFIGURE_MIRROR" == "N" ]]; then
+        log_info "使用系统默认源，不配置镜像源"
     else
-        log_info "跳过镜像源配置，使用系统默认源"
+        log_info "跳过镜像源配置"
     fi
     
     log_success "Alibaba Cloud Linux 3系统优化完成"
